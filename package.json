@@ -8,7 +8,9 @@
     "bootstrap": "lerna bootstrap",
     "start": "lerna run start",
     "clean": "lerna clean",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "build": "lerna run build",
+    "deploy": "lerna run deploy"
   },
   "keywords": [],
   "author": "",
