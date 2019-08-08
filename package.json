@@ -1,0 +1,18 @@
+{
+  "name": "commit-karma",
+  "version": "1.0.0",
+  "description": "> A GitHub App built with [Probot](https://github.com/probot/probot) that A Probot app",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "lerna bootstrap",
+    "bootstrap": "lerna bootstrap",
+    "start": "lerna run start",
+    "clean": "lerna clean"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lerna": "^3.16.4"
+  }
+}
