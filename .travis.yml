@@ -23,6 +23,6 @@ script:
 
 deploy:
   - provider: script
-    script: npm run deploy
+    script: bash ./scripts/deploy.sh
     on:
       branch: master
