@@ -7,6 +7,9 @@ notifications:
 services:
   - docker
 
+env:
+  secure: ...
+
 install:
   - npm ci
   - npm run bootstrap
@@ -19,7 +22,7 @@ script:
   - npm run test
 
 deploy:
-  - provider: sript
+  - provider: script
     script: npm run deploy
     on:
       branch: master
