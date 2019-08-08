@@ -22,9 +22,11 @@ new LoadBalancedFargateService(stack, "CKFargateService", {
   publicLoadBalancer: true,
   cpu: 256,
   memoryLimitMiB: 512,
-  containerPort: 8080,
+  containerPort: 3000,
   environment: {
-    // ...
+    APP_ID: process.env.APP_ID,
+    PRIVATE_KEY: process.env.PRIVATE_KEY,
+    WEBHOOK_SECRET: process.env.WEBHOOK_SECRET
   }
 })
 

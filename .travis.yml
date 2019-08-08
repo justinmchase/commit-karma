@@ -4,3 +4,22 @@ node_js:
   - "12"
 notifications:
   disabled: true
+services:
+  - docker
+
+install:
+  - npm ci
+  - npm run bootstrap
+cache:
+  directories:
+    - "$HOME/.npm"
+
+script:
+  - npm run build
+  - npm run test
+
+deploy:
+  - provider: sript
+    script: npm run deploy
+    on:
+      branch: master
