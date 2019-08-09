@@ -35,9 +35,9 @@ default_events:
 # - project_card
 # - project_column
 # - public
-# - pull_request
-# - pull_request_review
-# - pull_request_review_comment
+- pull_request
+- pull_request_review
+- pull_request_review_comment
 # - push
 # - release
 # - repository
@@ -70,11 +70,11 @@ default_permissions:
 
   # Issues and related comments, assignees, labels, and milestones.
   # https://developer.github.com/v3/apps/permissions/#permission-on-issues
-  issues: read
+  # issues: read
 
   # Search repositories, list collaborators, and access repository metadata.
   # https://developer.github.com/v3/apps/permissions/#metadata-permissions
-  metadata: read
+  # metadata: read
 
   # Retrieve Pages statuses, configuration, and builds, as well as create new builds.
   # https://developer.github.com/v3/apps/permissions/#permission-on-pages
@@ -129,7 +129,7 @@ default_permissions:
 name: Commit Karma
 
 # The homepage of your GitHub App.
-# url: https://example.com/
+url: https://commitkarma.com/
 
 # A description of the GitHub App.
 description: Give one to get one

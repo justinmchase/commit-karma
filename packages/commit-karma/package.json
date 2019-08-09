@@ -13,37 +13,28 @@
     "probot-app"
   ],
   "scripts": {
-    "dev": "nodemon",
-    "start": "probot run ./index.js",
+    "dev": "tsc-watch --noClear --onSuccess \"npm start\"",
+    "start": "probot run ./dist/index.js",
     "test": "jest",
-    "test:watch": "jest --watch --notify --notifyMode=change --coverage"
+    "test:watch": "jest --watch --notify --notifyMode=change --coverage",
+    "build": "tsc"
   },
   "dependencies": {
+    "mongodb": "^3.3.0-beta2",
+    "nanoid": "^2.0.3",
     "probot": "^7.2.0",
-    "typescript": "^3.5.3",
-    "uuid": "^3.3.2"
+    "source-map-support": "^0.5.13",
+    "typescript": "^3.5.3"
   },
   "devDependencies": {
+    "@types/mongodb": "^3.1.32",
     "jest": "^24.0.0",
     "nock": "^10.0.1",
-    "nodemon": "^1.17.2",
     "smee-client": "^1.0.2",
-    "standard": "^12.0.1"
+    "tsc-watch": "^2.4.0"
   },
   "engines": {
-    "node": ">= 8.3.0"
-  },
-  "standard": {
-    "env": [
-      "jest"
-    ]
-  },
-  "nodemonConfig": {
-    "exec": "npm start",
-    "watch": [
-      ".env",
-      "."
-    ]
+    "node": ">= 12.0.0"
   },
   "jest": {
     "testEnvironment": "node"
