@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "deploy": "cdk deploy --require-approval=never --app \"node dist\""
+    "deploy": "cdk deploy --ci --require-approval=never --app \"node dist\""
   },
   "keywords": [],
   "author": "",
