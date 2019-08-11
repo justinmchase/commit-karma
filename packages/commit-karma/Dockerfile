@@ -9,4 +9,4 @@ COPY dist dist/
 COPY app.yml app.yml
 EXPOSE 8080
 
-CMD [ "npx", "probot", "run", "dist" ]
+CMD [ "npx", "probot", "run", "./dist" ]
