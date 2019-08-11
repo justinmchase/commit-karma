@@ -8,4 +8,4 @@ RUN npm i
 COPY . .
 EXPOSE 8080
 
-CMD [ "npx", "probot", "run", "." ]
+CMD [ "npx", "probot", "run", "dist" ]
