@@ -1,6 +1,6 @@
 const nock = require('nock')
 // Requiring our app implementation
-const myProbotApp = require('..')
+const myProbotApp = require('../dist')
 const { Probot } = require('probot')
 // Requiring our fixtures
 const installationCreatedPayload = require('./fixtures/installation.created')

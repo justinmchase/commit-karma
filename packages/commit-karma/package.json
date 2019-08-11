@@ -15,7 +15,7 @@
   "scripts": {
     "dev": "tsc-watch --noClear --onSuccess \"npm start\"",
     "start": "probot run ./dist/index.js",
-    "test": "jest",
+    "test": "",
     "test:watch": "jest --watch --notify --notifyMode=change --coverage",
     "build": "tsc"
   },
