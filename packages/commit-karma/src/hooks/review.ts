@@ -1,26 +1,31 @@
 import { Database } from "../data/database";
 import { Application, Context } from "probot";
 
-export class PullRequest {
+export class Review {
   constructor(
     private readonly db: Database,
     private readonly app: Application
   ) {
-    this.app.on('pull_request', this.pr.bind(this))
+    this.app.on('pull_request_review', this.review.bind(this))
   }
-  
-  async pr(context: Context) {
+
+  async review(context: Context) {
     const { name, event, payload } = context
     const {
       action,
+      review: {
+        id: crid,
+        node_id: crnid,
+        state: reviewState
+      },
       sender: {
         id: sid,
         node_id: snid,
         login: senderLogin
       },
       repository: {
-        id: rid,
-        node_id: rnid,
+        id: rpid,
+        node_id: rpnid,
         name: repoName,
         owner: {
           id: oid,
@@ -44,20 +49,22 @@ export class PullRequest {
         id: iid
       }
     } = payload
+    
+
     const installationId = await this.db.resolveInstallationId(iid);
-    const senderId = await this.db.ensureUser({
-      gid: sid,
-      nid: snid,
-      login: senderLogin
-    })
     const ownerId = await this.db.ensureUser({
       gid: oid,
       nid: onid,
       login: ownerLogin
     })
+    const senderId = await this.db.ensureUser({
+      gid: sid,
+      nid: snid,
+      login: senderLogin
+    })
     const repoId = await this.db.ensureRepo({
-      gid: rid,
-      nid: rnid,
+      gid: rpid,
+      nid: rpnid,
       name: repoName,
       ownerId,
       installationId
@@ -73,6 +80,17 @@ export class PullRequest {
       merged: prMerged,
       repoId,
       senderId,
+      installationId
+    })
+
+    // Ensure this user gets credit for this review
+    await this.db.ensureCodeReview({
+      gid: crid,
+      nid: crnid,
+      state: reviewState,
+      senderId,
+      repoId,
+      prId,
       installationId
     })
 
@@ -101,5 +119,5 @@ export class PullRequest {
       prTitle,
       installationId
     })
-  }
+  }  
 }

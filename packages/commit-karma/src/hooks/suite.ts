@@ -12,104 +12,66 @@ export class Suite {
 
   public async check(context: Context) {
     const { name,  payload } = context
-    const { action, check_suite, repository, sender, installation } = payload
-    
-    const { id: installationId } = installation // id is gid: number
     const {
-      id: suiteId,
-      node_id: suiteNid,
-      head_branch: branch,
-      // head_sha: sha,
-      // before, // sha
-      // after, // sha
-      pull_requests: pullRequests, // id, number, head, base, url
-      // app - This is Commit Karma, this app
-    } = check_suite
+      action,
+      repository: {
+        id: rid,
+        node_id: rnid,
+        name: repoName,
+        owner: {
+          id: oid,
+          node_id: onid,
+          login: ownerLogin,
+        }
+      },
+      check_suite: {
+        id: sid,
+        node_id: snid,
+        head_sha: head,
+        head_branch: branch,
+        pull_requests: pullRequests,
+      },
+      installation: {
+        id: iid
+      }
+    } = payload
 
-    const {
-      id: repoId,
-      node_id: repoNid,
-      // name: repoName,
-      full_name: repoName,
-      owner
-    } = repository
-
-    const {
-      id: ownerId,
-      node_id: ownerNid,
+    const installationId = await this.db.resolveInstallationId(iid);
+    const ownerId = await this.db.ensureUser({
+      gid: oid,
+      nid: onid,
       login: ownerLogin
-    } = owner
-
-    const {
-      id: senderId,
-      node_id: senderNid,
-      login: senderLogin
-    } = sender
+    })
+    const repoId = await this.db.ensureRepo({
+      gid: rid,
+      nid: rnid,
+      name: repoName,
+      ownerId,
+      installationId,
+    })
+    
+    const prIds = await this.db.resolvePullRequestIds(pullRequests.map(pr => pr.id))
+    const suiteId = await this.db.ensureSuite({
+      gid: sid,
+      nid: snid,
+      branch,
+      head,
+      prIds,
+      installationId
+    })
 
     context.log({
       name,
       action,
-      senderId,
-      senderLogin,
       ownerId,
       ownerLogin,
       repoId,
       repoName,
+      suiteId,
       installationId
     })
 
-    const iid = await this.db.resolveInstallationId(installationId);
-    assert(iid, `Invalid installationId ${installationId}`)
-
-    const sid = await this.db.ensureUser({
-      gid: senderId,
-      nid: senderNid,
-      login: senderLogin
-    })
-    const oid = await (async () => {
-      if (ownerId === senderId) return sid
-      return this.db.ensureUser({
-        gid: ownerId,
-        nid: ownerNid,
-        login: ownerLogin
-      })
-    })()
-    const rid = await this.db.ensureRepo({
-      gid: repoId,
-      nid: repoNid,
-      name: repoName,
-      ownerId: oid,
-      installationId: iid
-    })
-
-    const pullRequestIds = []
-    for (const { id: prId, number } of pullRequests) {
-      context.log({ name, action, prId, number, repoId: rid, senderId: sid })
-      const _id = await this.db.ensurePullRequest(prId)
-      if (!_id) {
-        context.log.error({
-          name,
-          action,
-          pullRequestId: prId,
-          pullRequestNumber: number,
-          repoId,
-          repoName,
-          installationId,
-          message: "Unknown pull_requst"
-        })
-        return
-      }
-      pullRequestIds.push(_id)
-    }
-    const suid = await this.db.ensureSuite({
-      gid: suiteId,
-      nid: suiteNid,
-      branch,
-      pullRequestIds,
-      installationId: iid
-    })
-
-    if (action === 'requested') {
+    if (action === 'requested' || action === 'rerequested') {
       // Send a signal back to the PR indicating that we have one check to add
       await context.github.checks.create({
         name: 'Commit Karma',
@@ -117,6 +79,11 @@ export class Suite {
         status: 'in_progress',
         started_at: new Date().toISOString(),
         ...context.repo(),
+      })
+    } else if (action === 'completed') {
+      context.log.info({
+        name,
+        action
       })
     } else {
       context.log.error({

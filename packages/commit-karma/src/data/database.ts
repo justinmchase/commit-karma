@@ -1,3 +1,4 @@
+import assert from 'assert'
 import id from 'nanoid'
 import { MongoClient, Db, Collection } from 'mongodb'
 
@@ -19,7 +20,6 @@ export interface IEnsureInstallation {
   appId: number
   lastAction: string
   senderId: string
-  accountId: string
 }
 
 export interface IEnsureRepo {
@@ -34,19 +34,25 @@ export interface IEnsureSuite {
   gid: number
   nid: string
   branch: string,
-  pullRequestIds: string[],
+  head: string,
+  prIds: string[],
   installationId: string
 }
 
 export enum PullRequestState {
-  Open = "open"
+  Open = "open",
+  Closed = "closed"
 }
 
 export interface IEnsurePullRequest {
   gid: number
   nid: string
   number: number
+  head: string
   state: PullRequestState
+  title: string
+  draft: boolean
+  merged: boolean
   repoId: string
   senderId: string
   installationId: string
@@ -97,7 +103,7 @@ export interface IEnsureCodeReview {
   state: CodeReviewState
   senderId: string
   repoId: string
-  pullRequestId: string
+  prId: string
   installationId: string
 
 }
@@ -116,35 +122,120 @@ export class Database {
     this.collection = this.db.collection('prod')
   }
 
-  async calculateKarma(senderId: string) {
-    const results = await this.collection.aggregate([
+  async suitesForOpenPrs(senderId: string) {
+    return this.collection.aggregate<{ checkSuiteId: number, owner: string, repo: string }>([
       {
         $match: {
-          $or: [
-            { _type: "pull_request", senderId },
-            { _type: "code_review", senderId }
-          ]
+          _type: DataTypes.PullRequest,
+          state: PullRequestState.Open,
+          senderId
         }
       },
       {
-        $group: {
-          _id: "$_type",
-          count: { $sum: 1 }
+        $lookup: {
+          from: 'prod',
+          localField: 'head',
+          foreignField: 'head',
+          as: 'suite'
+        }
+      },
+      { $unwind: '$suite' },
+      {
+        $match: {
+          'suite._type': DataTypes.Suite
+        }
+      },
+      {
+        $lookup: {
+          from: 'prod',
+          localField: 'repoId',
+          foreignField: '_id',
+          as: 'repo'
+        }
+      },
+      { $unwind: '$repo' },
+      {
+        $lookup: {
+          from: 'prod',
+          localField: 'repoId',
+          foreignField: '_id',
+          as: 'repo'
+        }
+      },
+      { $unwind: '$repo' },
+      {
+        $lookup: {
+          from: 'prod',
+          localField: 'repo.ownerId',
+          foreignField: '_id',
+          as: 'owner'
+        }
+      },
+      { $unwind: '$owner' },
+      {
+        $project: {
+          checkSuiteId: '$suite.gid',
+          owner: '$owner.login',
+          repo: '$repo.name'
+        }
+      }
+    ])
+  }
+
+  async calculateKarma(senderId: string) {
+    // Sum of:
+    //   - non-draft, open and merged pull requests
+    //   - 1 code review per pull request
+    //
+    //   In other words PR's that are drafts or closed without being merged don't count towards your negative karma
+    const results = await this.collection.aggregate<{
+      pr: [{ count: number }],
+      cr: [{ count: number }]
+    }>([
+      {
+        $facet: {
+          pr: [
+            {
+              $match: {
+                _type: "pull_request",
+                draft: false,
+                senderId,
+                $or: [
+                  { state: PullRequestState.Open },
+                  { state: PullRequestState.Closed, merged: true }
+                ]
+              }
+            },
+            { $count: 'count' }
+          ],
+          cr: [
+            {
+              $match: {
+                _type: "code_review"
+              }
+            },
+            {
+              $group: {
+                _id: "$prId",
+                type: { $first: "$_type" },
+                count: { $sum: 1 }
+              }
+            },
+            { $count: 'count' }
+          ]
         }
       }
     ]).toArray()
+    const [{
+      cr: [{ count: cr = 0 } = {}] = [{}],
+      pr: [{ count: pr = 0 } = {}] = [{}]
+    } = {}] = results
 
-    const pr = results.find(r => r._id === DataTypes.PullRequest)
-    const cr = results.find(r => r._id === DataTypes.CodeReview)
-
-    return {
-      pr: pr ? pr.count : 0,
-      cr: cr ? cr.count : 0
-    }
+    return { pr, cr }
   }
 
   async ensureInstallation(installation: IEnsureInstallation) {
-    const { gid, appId, lastAction, senderId, accountId } = installation
+    const { gid, appId, lastAction, senderId } = installation
     const _id = id()
     const { value } = await this.collection.findOneAndUpdate(
       { _type: DataTypes.Installation, gid, appId },
@@ -159,7 +250,6 @@ export class Database {
         $set: {
           lastAction,
           senderId,
-          accountId,
           updatedAt: new Date()
         },
         $inc: { v: 1 }
@@ -180,6 +270,7 @@ export class Database {
         projection: { _id: 1 }
       }
     )
+    assert(_id, `Invalid installationId ${installationId}`)
     return _id
   }
 
@@ -234,7 +325,7 @@ export class Database {
   }
 
   async ensureSuite(suite: IEnsureSuite): Promise<string> {
-    const { gid, nid, branch, pullRequestIds, installationId } = suite
+    const { gid, nid, branch, head, prIds, installationId } = suite
     const _id = id()
     const { value } = await this.collection.findOneAndUpdate(
       { _type: DataTypes.Suite, gid, nid },
@@ -248,8 +339,9 @@ export class Database {
         },
         $set: {
           branch,
-          pullRequestIds,
+          prIds,
           installationId,
+          head,
           updatedAt: new Date()
         },
         $inc: { v: 1 }
@@ -259,20 +351,20 @@ export class Database {
     return value ? value._id : _id
   }
 
-  async resolvePullRequestId(pullRequestId: number) {
-    const { _id } = await this.collection.findOne(
+  async resolvePullRequestIds(prIds: number[]) {
+    const results = await this.collection.find(
       {
         _type: DataTypes.PullRequest,
-        gid: pullRequestId
+        gid: { $in: prIds }
       },
       {
         projection: { _id: 1 }
       }
-    )
-    return _id
+    ).toArray()
+    return results.map(r => r._id)
   }
   async ensurePullRequest(pr: IEnsurePullRequest) {
-    const { gid, nid, number, repoId, state, senderId, installationId } = pr
+    const { gid, nid, number, head, repoId, state, title, draft, merged, senderId, installationId } = pr
     const _id = id()
     const { value } = await this.collection.findOneAndUpdate(
       { _type: DataTypes.PullRequest, gid, nid },
@@ -287,6 +379,10 @@ export class Database {
         },
         $set: {
           state,
+          title,
+          head,
+          draft,
+          merged,
           repoId,
           senderId,
           installationId,
@@ -331,7 +427,7 @@ export class Database {
   }
   
   async ensureCodeReview(pr: IEnsureCodeReview) {
-    const { gid, nid, state, repoId, senderId, pullRequestId, installationId } = pr
+    const { gid, nid, state, repoId, senderId, prId, installationId } = pr
     const _id = id()
     const { value } = await this.collection.findOneAndUpdate(
       { _type: DataTypes.CodeReview, gid, nid },
@@ -347,7 +443,7 @@ export class Database {
           state,
           repoId,
           senderId,
-          pullRequestId,
+          prId,
           installationId,
           updatedAt: new Date()
         },
