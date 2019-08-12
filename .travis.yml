@@ -17,7 +17,7 @@ script:
 
 deploy:
   - provider: script
-    strategy: bash ./scripts/deploy.sh
+    strategy: ./scripts/deploy.sh
     skip_cleanup: true
     on:
       branch: master
