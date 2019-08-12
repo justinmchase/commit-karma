@@ -20,8 +20,8 @@ script:
   - npm run test
 
 deploy:
-  - provider: script
-    strategy: ./scripts/deploy.sh
-    skip_cleanup: true
-    on:
-      branch: master
+  skip_cleanup: true
+  provider: script
+  strategy: bash scripts/deploy.sh
+  on:
+    branch: master
