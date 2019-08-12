@@ -1,28 +1,24 @@
 sudo: false
+dist: xenial
 language: node_js
 node_js:
   - "12"
-notifications:
-  disabled: true
 services:
   - docker
-
-env:
-  secure: ...
+addons:
+  snaps:
+    - name: heroku
+      confinement: classic
 
 install:
   - npm ci
-  - npm run bootstrap
-cache:
-  directories:
-    - "$HOME/.npm"
 
 script:
   - npm run build
   - npm run test
 
 deploy:
-  - provider: script
-    script: bash ./scripts/deploy.sh
+  - provider: heroku
+    strategy: container
     on:
       branch: master

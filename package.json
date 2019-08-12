@@ -1,21 +1,42 @@
 {
   "name": "commit-karma",
   "version": "1.0.0",
-  "description": "> A GitHub App built with [Probot](https://github.com/probot/probot) that A Probot app",
-  "main": "index.js",
-  "scripts": {
-    "postinstall": "lerna bootstrap",
-    "bootstrap": "lerna bootstrap",
-    "start": "lerna run start",
-    "clean": "lerna clean",
-    "test": "lerna run test",
-    "build": "lerna run build",
-    "deploy": "lerna run deploy"
-  },
-  "keywords": [],
-  "author": "",
+  "description": "A Probot app",
+  "author": "Justin Chase <justin.m.chase@gmail.com>",
   "license": "ISC",
+  "repository": "https://github.com/justinmchase/commit-karma.git",
+  "homepage": "https://github.com/justinmchase/commit-karma",
+  "bugs": "https://github.com/justinmchase/commit-karma/issues",
+  "keywords": [
+    "probot",
+    "github",
+    "probot-app"
+  ],
+  "scripts": {
+    "dev": "tsc-watch --noClear --onSuccess \"npm start\"",
+    "start": "probot run ./dist/index.js",
+    "test": "",
+    "test:watch": "jest --watch --notify --notifyMode=change --coverage",
+    "build": "tsc"
+  },
   "dependencies": {
-    "lerna": "^3.16.4"
+    "mongodb": "^3.3.0-beta2",
+    "nanoid": "^2.0.3",
+    "probot": "^7.2.0",
+    "source-map-support": "^0.5.13",
+    "typescript": "^3.5.3"
+  },
+  "devDependencies": {
+    "@types/mongodb": "^3.1.32",
+    "jest": "^24.0.0",
+    "nock": "^10.0.1",
+    "smee-client": "^1.0.2",
+    "tsc-watch": "^2.4.0"
+  },
+  "engines": {
+    "node": ">= 12.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
 }
