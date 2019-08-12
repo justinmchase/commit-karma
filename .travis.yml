@@ -1,14 +1,12 @@
 sudo: false
-dist: xenial
 language: node_js
 node_js:
   - "12"
 services:
   - docker
-addons:
-  snaps:
-    - name: heroku
-      confinement: classic
+
+before_install:
+  - curl https://cli-assets.heroku.com/install.sh | sh
 
 install:
   - npm ci
