@@ -16,7 +16,7 @@ script:
   - npm run test
 
 deploy:
-  - provider: heroku
-    strategy: container
+  - provider: script
+    strategy: bash ./scripts/deploy.sh
     on:
       branch: master
