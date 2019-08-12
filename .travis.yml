@@ -11,6 +11,10 @@ before_install:
 install:
   - npm ci
 
+cache:
+  directories:
+    - "$HOME/.npm"
+
 script:
   - npm run build
   - npm run test
