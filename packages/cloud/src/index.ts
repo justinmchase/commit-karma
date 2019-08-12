@@ -29,7 +29,8 @@ new LoadBalancedFargateService(stack, "CKFargateService", {
   environment: {
     APP_ID: process.env.APP_ID,
     PRIVATE_KEY: process.env.PRIVATE_KEY,
-    WEBHOOK_SECRET: process.env.WEBHOOK_SECRET
+    MONGO_URL: process.env.MONGO_URL,
+    MONGO_DB: process.env.MONGO_DB
   }
 })
 
