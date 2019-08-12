@@ -1,6 +1,11 @@
-# commit-karma
 
-> A GitHub App built with [Probot](https://github.com/probot/probot) that A Probot app
+![Commit Karma Logo](./assets/logo.png)
+
+# commit-karma
+Give one to get one!
+
+This app tracks Code Reviews and Pull Requests across all projects with Commit Karma installed. It adds a failed Check to a Pull Request if the user who submitted the request does not have a positive Review to Request ratio.
+
 
 ## Setup
 
@@ -11,12 +16,6 @@ npm install
 # Run the bot
 npm start
 ```
-
-## Contributing
-
-If you have suggestions for how commit-karma could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
-
-For more, check out the [Contributing Guide](CONTRIBUTING.md).
 
 ## License
 
