@@ -4,8 +4,8 @@ node_js:
   - "12"
 services:
   - docker
-
 install:
+  - curl https://cli-assets.heroku.com/install.sh | sh
   - npm ci
 
 cache:
@@ -18,7 +18,7 @@ script:
 
 deploy:
   - provider: script
-    strategy: bash scripts/deploy.sh
+    script: bash scripts/deploy.sh
     skip_cleanup: true
     on:
       branch: master

@@ -29,7 +29,6 @@
   },
   "devDependencies": {
     "@types/mongodb": "^3.1.32",
-    "heroku": "^7.27.1",
     "jest": "^24.0.0",
     "nock": "^10.0.1",
     "smee-client": "^1.0.2",

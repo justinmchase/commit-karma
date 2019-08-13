@@ -3,7 +3,7 @@ echo "Deploying..."
 
 # Build
 if ! [ -d node_modules ]; then
-  npm ci
+  npm i
 fi
 
 if ! [ -d dist ]; then
@@ -11,6 +11,6 @@ if ! [ -d dist ]; then
 fi
 
 # Create Docker Image and Push
-npx heroku container:login
-npx heroku container:push web
-npx heroku container:release web
+heroku container:login
+heroku container:push web
+heroku container:release web
