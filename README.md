@@ -25,3 +25,5 @@ npm start
 ## License
 
 [ISC](LICENSE) © 2019 Justin Chase <justin.m.chase@gmail.com>
+
+[Privacy Policy](assets/PRIVACY.md)
