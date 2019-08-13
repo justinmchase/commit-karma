@@ -19,9 +19,9 @@ script:
   - npm run build
   - npm run test
 
-# deploy:
-#   skip_cleanup: true
-#   provider: script
-#   strategy: bash scripts/deploy.sh
-#   on:
-#     branch: master
+deploy:
+  skip_cleanup: true
+  provider: script
+  strategy: bash scripts/deploy.sh
+  on:
+    branch: master
