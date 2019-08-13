@@ -1,12 +1,16 @@
-#!/bin/bash
-# Install and Setup Heroku
-gem install heroku
-heroku container:login
+#!/usr/bin/env bash
+echo "Deploying..."
 
 # Build
-npm ci
-npm run build
+if ! [ -d node_modules ]; then
+  npm ci
+fi
+
+if ! [ -d dist ]; then
+  npm run build
+fi
 
 # Create Docker Image and Push
-heroku container:push web
-heroku container:release web
+npx heroku container:login
+npx heroku container:push web
+npx heroku container:release web

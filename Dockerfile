@@ -3,7 +3,7 @@ FROM node:11
 WORKDIR /usr/src/app
 
 COPY package*.json ./
-RUN npm i
+RUN npm install --production
 
 COPY dist dist/
 COPY app.yml app.yml
