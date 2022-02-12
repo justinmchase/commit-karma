@@ -22,6 +22,6 @@ deno run -A mod.ts
 
 ## License
 
-[ISC](LICENSE) © 2019 Justin Chase <justin.m.chase@gmail.com>
+[ISC](LICENSE) © 2022 Justin Chase <justin.m.chase@gmail.com>
 
 [Privacy Policy](assets/PRIVACY.md)
