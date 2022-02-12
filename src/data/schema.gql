@@ -1,0 +1,48 @@
+type User {
+  gid: Int!
+  nid: Int!
+  login: String!
+}
+
+type Installation {
+  gid: Int!
+  appId: Int!
+  senderId: ID!
+  lastAction: String!
+}
+
+type Repo {
+  gid: Int!
+  nid: ID!
+  ownerId: ID!
+  installationId: ID!
+  name: String!
+}
+
+type Suite {
+  gid: Int!
+  nid: ID!
+  prIds: [ID!]!
+  installationId: ID!
+  branch: String!
+  head: String!
+}
+
+enum PullRequestState {
+  open
+  closed
+}
+
+type PullRequest {
+  gid: Int!
+  nid: String!
+  number: Int!
+  repoId: ID!
+  senderId: ID!
+  installationId: ID!
+  head: String!
+  state: PullRequestState!
+  title: String!
+  draft: Boolean!
+  merged: Boolean!
+}
