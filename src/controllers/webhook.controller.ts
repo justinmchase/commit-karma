@@ -2,15 +2,24 @@ import { Application, Status, Router, Request, Response } from '../../deps/oak.t
 import { Controller } from "./controller.ts";
 import { ISerializable } from "../util/serializable.ts"
 import {
+  State,
+  AccountType,
+} from "../data/mod.ts"
+import {
   GithubEvents,
   GithubInstallationActions,
   IGithubInstallationEvent,
   IInstallationEvent,
   assertInstallationEvent,
 } from "../schema/github.ts"
+import { InstallationManager } from "../managers/installation.manager.ts"
 
 
 export class WebhookController extends Controller {
+
+  constructor(private readonly installations: InstallationManager) {
+    super()
+  }
 
   public async use(app: Application): Promise<void> {
     const router = new Router()
@@ -60,21 +69,41 @@ export class WebhookController extends Controller {
   }
 
   private async handleInstallationCreated(installation: IInstallationEvent) {
-    const { id, targetId, repositories } = installation
-    for (const repo of repositories) {
-      console.log(`install create ${id} ${targetId} ${repo}`)
+    const { id, targetId, type, repositories } = installation
+    for (const repositoryId of repositories) {
+      console.log(`event installation created ${id} ${targetId} ${repositoryId}`)
+      const existingInstallation = await this.installations.byRepositoryId(repositoryId)
+      if (existingInstallation) {
+        const { _id } = existingInstallation
+        await this.installations.update(existingInstallation, State.Active)
+        console.log(`data installation updated ${_id} active`)
+      } else {
+        const created = await this.installations.create({
+          installationId: id,
+          targetId,
+          targetType: type.toLowerCase() as AccountType,
+          repositoryId
+        })
+        const { _id } = created
+        console.log(`data installation created ${_id} ${id} ${targetId} ${repositoryId} active`)
+      }
     }
-    await null;
   }
 
   private async handleInstallationDeleted(installation: IInstallationEvent) {
     const { id, targetId, repositories } = installation
-    for (const repo of repositories) {
-      console.log(`install delete ${id} ${targetId} ${repo}`)
+    for (const repositoryId of repositories) {
+      console.log(`event installation delete ${id} ${targetId} ${repositoryId}`)
+      const existingInstallation = await this.installations.byRepositoryId(repositoryId)
+      if (existingInstallation) {
+        const { _id } = existingInstallation
+        await this.installations.update(existingInstallation, State.Deleted)
+        console.log(`data installation updated ${_id} deleted`)
+      } else {
+        console.log(`data installation unknown ${id} ${targetId} ${repositoryId}`)
+      }
     }
-    await null;
   }
-
 }
 
 // {
