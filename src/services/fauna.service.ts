@@ -11,10 +11,11 @@ export class FaunaService {
       throw new Error("environment variable FAUNA_SECRET not set");
     }
 
-    this.client = new GraphQLClient("https://graphql.fauna.com/graphql", {
+    this.client = new GraphQLClient("https://graphql.us.fauna.com/graphql", {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
+        "X-Schema-Preview": "partial-update-mutation",
       }
     });
   }

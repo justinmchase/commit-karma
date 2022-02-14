@@ -9,13 +9,14 @@ enum AccountType {
 }
 
 type Installation {
-  installationId: Int!
+  installationId: Int! @unique(index: "unique_repository")
+  repositoryId: Int! @unique(index: "unique_repository")
   targetId: Int!
   targetType: AccountType!
-  repositoryId: Int!
   state: State!
 }
 
 type Query {
-  installationByRepositoryId(repositoryId: Int!): Installation
+  # allInstallations: [Installation!]
+  installationsByRepository(repositoryId: Int!): [Installation!]! @resolver(name: "installation_by_repository", paginated: true) 
 }

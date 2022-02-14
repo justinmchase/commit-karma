@@ -5,6 +5,7 @@ import { SchemaValidationError } from "../errors/mod.ts";
 
 export enum GithubEvents {
   Installation = "installation",
+  InstallationRepositories = "installation_repositories",
   CheckSuite = "check_suite",
   PullRequest = "pull_request",
   CheckRun = "check_run",
@@ -14,6 +15,12 @@ export enum GithubInstallationActions {
   Deleted = "deleted",
   Created = "created",
 }
+
+export enum GithubInstallationRepositoryActions {
+  Added = "added",
+  Removed = "removed",
+}
+
 enum GithubCheckSuiteActions {
   Requested = "requested",
   Completed = "completed",
@@ -36,6 +43,16 @@ export interface IGithubInstallationEvent extends ISerializable {
   action: GithubInstallationActions
   installation: IGithubInstallation
   repositories: IGithubRepository[]
+  sender: IGithubAccount
+}
+
+export interface IGithubInstallationRepositoryEvent extends ISerializable {
+  action: GithubInstallationRepositoryActions
+  installation: IGithubInstallation
+  repository_selection: "selected"
+  repositories_added: IGithubRepository[]
+  repositories_removed: IGithubRepository[]
+  requester: IGithubAccount | null
   sender: IGithubAccount
 }
 
@@ -99,51 +116,4 @@ export interface IGithubRepository extends ISerializable {
   name: string // "bewmdone",
   full_name: string // "justinmchase/bewmdone",
   private: boolean
-}
-
-const InstallationEventSchema = {
-  properties: {
-    action: { type: "string" },
-    id: { type: "number" },
-    targetId: { type: "number" },
-    type: { type: "string" },
-    repositories: {
-      elements: {
-        type: "number"
-      }
-    }
-  }
-} as Schema;
-
-export interface IInstallationEvent {
-  action: GithubInstallationActions
-  id: number
-  targetId: number
-  type: GithubAccountType
-  repositories: number[]
-}
-
-export function assertInstallationEvent(data: IGithubInstallationEvent): IInstallationEvent {
-  const { action, installation: { id, target_id, target_type }, repositories } = data
-
-  const installationAction = {
-    action,
-    id,
-    targetId: target_id,
-    type: target_type,
-    repositories: repositories.map(({ id }) => id)
-  }
-
-  const [error] = validate(InstallationEventSchema, installationAction);
-  if (error) {
-    const { instancePath, schemaPath } = error;
-    throw new SchemaValidationError(
-      "installation",
-      instancePath,
-      schemaPath,
-      InstallationEventSchema,
-    );
-  }
-
-  return installationAction as IInstallationEvent
 }

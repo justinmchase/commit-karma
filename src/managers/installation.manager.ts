@@ -38,31 +38,33 @@ export class InstallationManager {
   // state: State!
 
   public async byRepositoryId(repositoryId: number): Promise<Installation | undefined> {
-    const { installationByRepositoryId } = await this.fauna.query<{ installationByRepositoryId: Installation }>(
+    const res = await this.fauna.query<{ installationsByRepository: { data: Installation[] } }>(
       gql`
-        query GetInstallationByRepositoryId($repositoryId:Int!) {
-          installationByRepositoryId($repositoryId) {
-            _id
-            _ts
-            state
-            installationId
-            targetId
-            targetType
-            repositoryId
+        query InstallationGetByRepositoryId($repositoryId:Int!) {
+          installationsByRepository(repositoryId: $repositoryId) {
+            data {
+              _id
+              _ts
+              state
+              installationId
+              targetId
+              targetType
+              repositoryId
+            }
           }
         }
       `,
       { repositoryId }
-    ) ?? {}
+    )
 
-    return installationByRepositoryId
+    return res?.installationsByRepository?.data?.[0];
   }
 
   public async create(data: CreateInstallationInput): Promise<Installation> {
     const { installationId, targetId, targetType, repositoryId } = data;
     const { createInstallation } = await this.fauna.query<{ createInstallation: Installation }>(
       gql`
-        mutation CreateInstallation(
+        mutation InstallationCreate(
           $installationId: Int!
           $targetId: Int!
           $targetType: AccountType!
@@ -103,55 +105,38 @@ export class InstallationManager {
     return createInstallation
   }
 
-  public async update(
+  public async setState(
     installation: Installation,
     state: State
   ): Promise<Installation> {
-    const { _id, installationId, repositoryId, targetId, targetType } = installation
-    const { updateInstallation } = await this.fauna.query<{ updateInstallation: Installation }>(
+    const { _id } = installation
+    const { partialUpdateInstallation } = await this.fauna.query<{ partialUpdateInstallation: Installation }>(
       gql`
-        mutation UpdateInstallation(
+        mutation InstallationSetState(
           $id: ID!
-          $installationId: Int!
-          $repositoryId: Int!
-          $targetId: Int!
-          $targetType: AccountType!
           $state: State!
         ) {
-          updateInstallation(
+          partialUpdateInstallation(
             id: $id
             data: {
-              installationId: $installationId
-              repositoryId: $repositoryId
-              targetId: $targetId
-              targetType: $targetType
               state: $state
             }
           ) {
             _id
-            installationId
-            targetId
-            targetType
-            repositoryId
             state
           }
         }
       `,
       {
         id: _id,
-        installationId,
-        repositoryId,
-        targetId,
-        targetType,
         state
       }
     ) ?? {}
 
-    if (!updateInstallation) {
+    if (!partialUpdateInstallation) {
       throw new Error('failed to create installation')
     }
 
-    return updateInstallation
-
+    return partialUpdateInstallation
   }
 }

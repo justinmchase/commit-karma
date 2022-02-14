@@ -8,10 +8,18 @@ import {
 import {
   GithubEvents,
   GithubInstallationActions,
+  GithubInstallationRepositoryActions,
   IGithubInstallationEvent,
+  IGithubInstallationRepositoryEvent,
+} from "../schema/github.ts"
+import {
   IInstallationEvent,
   assertInstallationEvent,
-} from "../schema/github.ts"
+} from "../schema/installation.schema.ts"
+import {
+  IInstallationRepositoryEvent,
+  assertInstallationRepositoryEvent,
+} from "../schema/installationRepository.schema.ts"
 import { InstallationManager } from "../managers/installation.manager.ts"
 
 
@@ -44,6 +52,9 @@ export class WebhookController extends Controller {
         case GithubEvents.Installation:
           await this.handleInstallation(data);
           break;
+        case GithubEvents.InstallationRepositories:
+          await this.handleInstallationRepositories(data);
+          break;
         default:
           console.log('unknown github event:', githubEvent)
           console.log(req)
@@ -68,6 +79,16 @@ export class WebhookController extends Controller {
     }
   }
 
+  private async handleInstallationRepositories(data: ISerializable) {
+    const installation = assertInstallationRepositoryEvent(data as IGithubInstallationRepositoryEvent)
+    switch (installation.action) {
+      case GithubInstallationRepositoryActions.Added:
+        return await this.handleInstallationRepositoryAdded(installation);
+      case GithubInstallationRepositoryActions.Removed:
+        return await this.handleInstallationRepositoryRemoved(installation);
+    }
+  }
+
   private async handleInstallationCreated(installation: IInstallationEvent) {
     const { id, targetId, type, repositories } = installation
     for (const repositoryId of repositories) {
@@ -75,7 +96,7 @@ export class WebhookController extends Controller {
       const existingInstallation = await this.installations.byRepositoryId(repositoryId)
       if (existingInstallation) {
         const { _id } = existingInstallation
-        await this.installations.update(existingInstallation, State.Active)
+        await this.installations.setState(existingInstallation, State.Active)
         console.log(`data installation updated ${_id} active`)
       } else {
         const created = await this.installations.create({
@@ -97,98 +118,49 @@ export class WebhookController extends Controller {
       const existingInstallation = await this.installations.byRepositoryId(repositoryId)
       if (existingInstallation) {
         const { _id } = existingInstallation
-        await this.installations.update(existingInstallation, State.Deleted)
+        await this.installations.setState(existingInstallation, State.Deleted)
         console.log(`data installation updated ${_id} deleted`)
       } else {
         console.log(`data installation unknown ${id} ${targetId} ${repositoryId}`)
       }
     }
   }
+
+  private async handleInstallationRepositoryAdded(installation: IInstallationRepositoryEvent) {
+    const { id, targetId, type, repositories } = installation
+    for (const repositoryId of repositories) {
+      console.log(`event installation repository added ${id} ${targetId} ${repositoryId}`)
+      const existingInstallation = await this.installations.byRepositoryId(repositoryId)
+      if (existingInstallation) {
+        const { _id } = existingInstallation
+        await this.installations.setState(existingInstallation, State.Active)
+        console.log(`data installation updated ${_id} active`)
+      } else {
+        const created = await this.installations.create({
+          installationId: id,
+          targetId,
+          targetType: type.toLowerCase() as AccountType,
+          repositoryId
+        })
+        const { _id } = created
+        console.log(`data installation created ${_id} ${id} ${targetId} ${repositoryId} active`)
+      }
+    }
+  }
+
+  private async handleInstallationRepositoryRemoved(installation: IInstallationRepositoryEvent) {
+    const { id, targetId, repositories } = installation
+    for (const repositoryId of repositories) {
+      console.log(`event installation repository removed ${id} ${targetId} ${repositoryId}`)
+      const existingInstallation = await this.installations.byRepositoryId(repositoryId)
+      if (existingInstallation) {
+        const { _id } = existingInstallation
+        await this.installations.setState(existingInstallation, State.Deleted)
+        console.log(`data installation updated ${_id} deleted`)
+      } else {
+        console.log(`data installation unknown ${id} ${targetId} ${repositoryId}`)
+      }
+    }
+  }
+
 }
-
-// {
-//   "action": "created",
-//   "installation": {
-//     "id": 23211748,
-//     "account": {
-//       "login": "justinmchase",
-//       "id": 10974,
-//       "node_id": "MDQ6VXNlcjEwOTc0",
-//       "avatar_url": "https://avatars.githubusercontent.com/u/10974?v=4",
-//       "gravatar_id": "",
-//       "url": "https://api.github.com/users/justinmchase",
-//       "html_url": "https://github.com/justinmchase",
-//       "followers_url": "https://api.github.com/users/justinmchase/followers",
-//       "following_url": "https://api.github.com/users/justinmchase/following{/other_user}",
-//       "gists_url": "https://api.github.com/users/justinmchase/gists{/gist_id}",
-//       "starred_url": "https://api.github.com/users/justinmchase/starred{/owner}{/repo}",
-//       "subscriptions_url": "https://api.github.com/users/justinmchase/subscriptions",
-//       "organizations_url": "https://api.github.com/users/justinmchase/orgs",
-//       "repos_url": "https://api.github.com/users/justinmchase/repos",
-//       "events_url": "https://api.github.com/users/justinmchase/events{/privacy}",
-//       "received_events_url": "https://api.github.com/users/justinmchase/received_events",
-//       "type": "User",
-//       "site_admin": false
-//     },
-//     "repository_selection": "selected",
-//     "access_tokens_url": "https://api.github.com/app/installations/23211748/access_tokens",
-//     "repositories_url": "https://api.github.com/installation/repositories",
-//     "html_url": "https://github.com/settings/installations/23211748",
-//     "app_id": 37724,
-//     "app_slug": "commit-karma",
-//     "target_id": 10974,
-//     "target_type": "User",
-//     "permissions": {
-//       "checks": "write",
-//       "issues": "read",
-//       "metadata": "read",
-//       "pull_requests": "read"
-//     },
-//     "events": [
-//       "check_run",
-//       "check_suite",
-//       "pull_request",
-//       "pull_request_review",
-//       "pull_request_review_comment"
-//     ],
-//     "created_at": "2022-02-12T14:17:31.000-06:00",
-//     "updated_at": "2022-02-12T14:17:31.000-06:00",
-//     "single_file_name": null,
-//     "has_multiple_single_files": false,
-//     "single_file_paths": [
-
-//     ],
-//     "suspended_by": null,
-//     "suspended_at": null
-//   },
-//   "repositories": [
-//     {
-//       "id": 201168994,
-//       "node_id": "MDEwOlJlcG9zaXRvcnkyMDExNjg5OTQ=",
-//       "name": "commit-karma",
-//       "full_name": "justinmchase/commit-karma",
-//       "private": false
-//     }
-//   ],
-//   "requester": null,
-//   "sender": {
-//     "login": "justinmchase",
-//     "id": 10974,
-//     "node_id": "MDQ6VXNlcjEwOTc0",
-//     "avatar_url": "https://avatars.githubusercontent.com/u/10974?v=4",
-//     "gravatar_id": "",
-//     "url": "https://api.github.com/users/justinmchase",
-//     "html_url": "https://github.com/justinmchase",
-//     "followers_url": "https://api.github.com/users/justinmchase/followers",
-//     "following_url": "https://api.github.com/users/justinmchase/following{/other_user}",
-//     "gists_url": "https://api.github.com/users/justinmchase/gists{/gist_id}",
-//     "starred_url": "https://api.github.com/users/justinmchase/starred{/owner}{/repo}",
-//     "subscriptions_url": "https://api.github.com/users/justinmchase/subscriptions",
-//     "organizations_url": "https://api.github.com/users/justinmchase/orgs",
-//     "repos_url": "https://api.github.com/users/justinmchase/repos",
-//     "events_url": "https://api.github.com/users/justinmchase/events{/privacy}",
-//     "received_events_url": "https://api.github.com/users/justinmchase/received_events",
-//     "type": "User",
-//     "site_admin": false
-//   }
-// }
