@@ -14,6 +14,7 @@ export class MongoService {
 
   public static async create(env: Record<string, string>) {
     const connectionString = env["MONGO_CONNECTION_STRING"]
+    console.log('mongo connecting...')
     const client = new MongoClient()
     const db = await client.connect(connectionString)
     console.log('mongo connected')
