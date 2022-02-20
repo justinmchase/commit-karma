@@ -19,7 +19,6 @@ export class MongoService {
     const options = await parseConnectionString(connectionString);
     if (connectionString.indexOf('localhost') === -1) {
       options.tls = true
-      options.retryWrites = true
     }
 
     const db = await client.connect(options)
