@@ -1,4 +1,4 @@
-import { MongoClient, Database, Collection, Document } from "../../deps/mongo.ts";
+import { parseConnectionString, MongoClient, Database, Collection, Document } from "../../deps/mongo.ts";
 
 export class MongoService {
   public readonly installations: Collection<Document>
@@ -16,7 +16,13 @@ export class MongoService {
     const connectionString = env["MONGO_CONNECTION_STRING"]
     console.log('mongo connecting...')
     const client = new MongoClient()
-    const db = await client.connect(connectionString)
+    const options = await parseConnectionString(connectionString);
+    if (connectionString.indexOf('localhost') === -1) {
+      options.tls = true
+      options.retryWrites = true
+    }
+
+    const db = await client.connect(options)
     console.log('mongo connected')
     return new MongoService(client, db);
   }
