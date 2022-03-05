@@ -22,6 +22,15 @@ export class GithubService {
     // cat commit-karma.pem | base64
     const privateKey = env["GITHUB_PRIVATE_KEY"];
 
+    if (!Deno.permissions) {
+      // todo: remove this hack once the following issue is resolved
+      // https://github.com/laughedelic/github_app_auth/issues/6
+      (Deno as unknown as Record<string, unknown>)['permissions'] = {
+        query: async () => await true
+      }
+      console.log('Deno.permissions patched')
+    }
+
     return await new GithubService(appId, privateKey);
   }
 
