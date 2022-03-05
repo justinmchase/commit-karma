@@ -8,7 +8,7 @@ export async function start() {
   const app = new Application<IContext>();
   const services = await initServices();
   const managers = await initManagers(services);
-  await initControllers(app, managers);
+  await initControllers(app, managers, services);
   app.addEventListener("listen", (e) => {
     console.log(`Listening on http://localhost:${e.port}`);
   });

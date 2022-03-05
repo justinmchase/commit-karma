@@ -1,13 +1,15 @@
 import { dotenv } from "../../deps/dotenv.ts";
+import { GithubService } from "./github.service.ts";
 import { MongoService } from "./mongo.service.ts";
-import { FaunaService } from "./fauna.service.ts";
 
 export {
-  FaunaService
+  GithubService,
+  MongoService
 }
 
 export type Services = {
-  fauna: FaunaService
+  mongo: MongoService,
+  github: GithubService,
 }
 
 export async function initServices() {
@@ -15,14 +17,10 @@ export async function initServices() {
     ...await dotenv(),
     ...Deno.env.toObject()
   }
-  const fauna = new FaunaService(env)
-
-  MongoService.create(env)
-    .then(() => console.log('mongo created'))
-    .catch(err => console.error(err))
-
+  const mongo = await MongoService.create(env)
+  const github = await GithubService.create(env)
   return {
-    fauna,
-    // mongo,
+    mongo,
+    github,
   }
 }

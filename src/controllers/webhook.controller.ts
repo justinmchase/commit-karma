@@ -1,31 +1,43 @@
 import { Application, Status, Router, Request, Response } from '../../deps/oak.ts';
 import { Controller } from "./controller.ts";
 import { ISerializable } from "../util/serializable.ts"
+import { NotImplementedError } from "../errors/mod.ts"
 import {
   State,
-  AccountType,
+  InteractionKind,
+  InteractionScore,
 } from "../data/mod.ts"
 import {
   GithubEvents,
-  GithubInstallationActions,
-  GithubInstallationRepositoryActions,
-  IGithubInstallationEvent,
-  IGithubInstallationRepositoryEvent,
-} from "../schema/github.ts"
+  GithubIssueCommentActions,
+  GithubPullRequestReviewCommentActions,
+  IGithubIssueCommentEvent,
+  IGithubPullRequestEvent,
+  IGithubPullRequestReviewEvent,
+  IGithubPullRequestReviewCommentEvent,
+  IGithubCheckSuiteEvent,
+  assertCheckSuiteEvent,
+  assertIssueCommentEvent,
+  assertPullRequestEvent,
+  assertPullRequestReviewEvent,
+  assertPullRequestReviewCommentEvent,
+} from "../schema/mod.ts"
 import {
-  IInstallationEvent,
-  assertInstallationEvent,
-} from "../schema/installation.schema.ts"
+  InstallationManager,
+  InteractionManager,
+} from "../managers/mod.ts"
 import {
-  IInstallationRepositoryEvent,
-  assertInstallationRepositoryEvent,
-} from "../schema/installationRepository.schema.ts"
-import { InstallationManager } from "../managers/installation.manager.ts"
+  GithubService
+} from "../services/mod.ts"
 
 
 export class WebhookController extends Controller {
 
-  constructor(private readonly installations: InstallationManager) {
+  constructor(
+    private readonly installations: InstallationManager,
+    private readonly interactions: InteractionManager,
+    private readonly github: GithubService,
+  ) {
     super()
   }
 
@@ -50,18 +62,34 @@ export class WebhookController extends Controller {
 
       switch (githubEvent) {
         case GithubEvents.Installation:
-          await this.handleInstallation(data);
-          break;
         case GithubEvents.InstallationRepositories:
-          await this.handleInstallationRepositories(data);
+          // ignore
+          break;
+        case GithubEvents.IssueComment:
+          await this.handleIssueComment(data);
+          break;
+        case GithubEvents.PullRequest:
+          await this.handlePullRequest(data);
+          break;
+        case GithubEvents.PullRequestReview:
+          await this.handlePullRequestReview(data);
+          break;
+        case GithubEvents.PullRequestReviewComment:
+          await this.handlePullRequestReviewComment(data);
+          break;
+        case GithubEvents.CheckSuite:
+          await this.handleCheckSuite(data);
           break;
         default:
           console.log('unknown github event:', githubEvent)
-          console.log(req)
-          break;
+          throw new NotImplementedError(`${githubEvent} ${data.action} not implemented`)
       }
     } catch (err) {
       console.log({ ...err }, err)
+      res.status = err.status ?? Status.InternalServerError;
+      res.body = { ok: false, message: err.message };
+      res.headers.set('Content-Type', 'application/json');
+      return;
     }
 
     res.status = Status.OK;
@@ -69,98 +97,151 @@ export class WebhookController extends Controller {
     res.headers.set('Content-Type', 'application/json');
   }
 
-  private async handleInstallation(data: ISerializable) {
-    const installation = assertInstallationEvent(data as IGithubInstallationEvent)
-    switch (installation.action) {
-      case GithubInstallationActions.Created:
-        return await this.handleInstallationCreated(installation);
-      case GithubInstallationActions.Deleted:
-        return await this.handleInstallationDeleted(installation);
+  private async handleIssueComment(data: ISerializable) {
+    const issueComment = await assertIssueCommentEvent(data as IGithubIssueCommentEvent)
+    const {
+      action,
+      number,
+      repositoryId,
+      commentId,
+      commentUserId,
+      issueUserId,
+    } = issueComment
+
+    if (issueUserId === commentUserId) {
+      // A user doesn't get karma points for commenting on their own issues.
+      console.log(`event issue_comment same_user ${repositoryId} ${number} ${commentId} ${commentUserId}`)
+      return;
     }
+
+    const kind = InteractionKind.Comment;
+    const score = InteractionScore[kind];
+    const state = action === GithubIssueCommentActions.Deleted
+      ? State.Deleted
+      : State.Active;
+    console.log(`event issue_comment ${action} ${repositoryId} ${number} ${commentId} ${commentUserId} ${score}`)
+    await this.interactions.upsert({
+      kind,
+      state,
+      repositoryId,
+      number,
+      id: commentId,
+      userId: issueUserId,
+      score
+    })
   }
 
-  private async handleInstallationRepositories(data: ISerializable) {
-    const installation = assertInstallationRepositoryEvent(data as IGithubInstallationRepositoryEvent)
-    switch (installation.action) {
-      case GithubInstallationRepositoryActions.Added:
-        return await this.handleInstallationRepositoryAdded(installation);
-      case GithubInstallationRepositoryActions.Removed:
-        return await this.handleInstallationRepositoryRemoved(installation);
-    }
+  private async handlePullRequest(data: ISerializable) {
+    const pullRequest = await assertPullRequestEvent(data as IGithubPullRequestEvent)
+    // regardless of action...
+    const {
+      action,
+      repositoryId,
+      pullRequestId,
+      number,
+      userId,
+    } = pullRequest
+
+    const kind = InteractionKind.PullRequest;
+    const score = InteractionScore[kind];
+    console.log(`event pull_request ${action} ${repositoryId} ${number} ${pullRequestId} ${userId} ${score}`)
+    await this.interactions.upsert({
+      kind,
+      state: State.Active,
+      repositoryId,
+      number,
+      id: pullRequestId,
+      userId: userId,
+      score
+    })
   }
 
-  private async handleInstallationCreated(installation: IInstallationEvent) {
-    const { id, targetId, type, repositories } = installation
-    for (const repositoryId of repositories) {
-      console.log(`event installation created ${id} ${targetId} ${repositoryId}`)
-      const existingInstallation = await this.installations.byRepositoryId(repositoryId)
-      if (existingInstallation) {
-        const { _id } = existingInstallation
-        await this.installations.setState(existingInstallation, State.Active)
-        console.log(`data installation updated ${_id} active`)
-      } else {
-        const created = await this.installations.create({
-          installationId: id,
-          targetId,
-          targetType: type.toLowerCase() as AccountType,
-          repositoryId
-        })
-        const { _id } = created
-        console.log(`data installation created ${_id} ${id} ${targetId} ${repositoryId} active`)
-      }
+  private async handlePullRequestReview(data: ISerializable) {
+    const pullRequest = await assertPullRequestReviewEvent(data as IGithubPullRequestReviewEvent)
+    // regardless of action...
+    const {
+      action,
+      repositoryId,
+      number,
+      // pullRequestId,
+      pullRequestUserId,
+      reviewId,
+      reviewUserId,
+    } = pullRequest
+
+    if (pullRequestUserId === reviewUserId) {
+      // A user doesn't get karma points for reviewing their own PRs (should never happen, github prevents it).
+      console.log(`event pull_request_review same_user ${repositoryId} ${number} ${reviewId} ${reviewUserId}`)
+      return;
     }
+
+    const kind = InteractionKind.Review;
+    const score = InteractionScore[kind];
+    console.log(`event pull_request ${action} ${repositoryId} ${number} ${reviewId} ${reviewUserId} ${score}`)
+    await this.interactions.upsert({
+      kind,
+      state: State.Active,
+      repositoryId,
+      number,
+      id: reviewId,
+      userId: reviewUserId,
+      score
+    })
   }
 
-  private async handleInstallationDeleted(installation: IInstallationEvent) {
-    const { id, targetId, repositories } = installation
-    for (const repositoryId of repositories) {
-      console.log(`event installation delete ${id} ${targetId} ${repositoryId}`)
-      const existingInstallation = await this.installations.byRepositoryId(repositoryId)
-      if (existingInstallation) {
-        const { _id } = existingInstallation
-        await this.installations.setState(existingInstallation, State.Deleted)
-        console.log(`data installation updated ${_id} deleted`)
-      } else {
-        console.log(`data installation unknown ${id} ${targetId} ${repositoryId}`)
-      }
+  private async handlePullRequestReviewComment(data: ISerializable) {
+    const pullRequest = await assertPullRequestReviewCommentEvent(data as IGithubPullRequestReviewCommentEvent)
+    // regardless of action...
+    const {
+      action,
+      repositoryId,
+      number,
+      // pullRequestId,
+      pullRequestUserId,
+      commentId,
+      commentUserId,
+    } = pullRequest
+
+    if (pullRequestUserId === commentUserId) {
+      // A user doesn't get karma points for reviewing their own PRs (should never happen, github prevents it).
+      console.log(`event pull_request_review same_user ${repositoryId} ${number} ${commentId} ${commentUserId}`)
+      return;
     }
+
+    const kind = InteractionKind.Comment;
+    const score = InteractionScore[kind];
+    const state = action === GithubPullRequestReviewCommentActions.Deleted
+      ? State.Deleted
+      : State.Active;
+    console.log(`event pull_request ${action} ${repositoryId} ${number} ${commentId} ${commentUserId} ${score}`)
+    await this.interactions.upsert({
+      kind,
+      state,
+      repositoryId,
+      number,
+      id: commentId,
+      userId: commentUserId,
+      score
+    })
   }
 
-  private async handleInstallationRepositoryAdded(installation: IInstallationRepositoryEvent) {
-    const { id, targetId, type, repositories } = installation
-    for (const repositoryId of repositories) {
-      console.log(`event installation repository added ${id} ${targetId} ${repositoryId}`)
-      const existingInstallation = await this.installations.byRepositoryId(repositoryId)
-      if (existingInstallation) {
-        const { _id } = existingInstallation
-        await this.installations.setState(existingInstallation, State.Active)
-        console.log(`data installation updated ${_id} active`)
-      } else {
-        const created = await this.installations.create({
-          installationId: id,
-          targetId,
-          targetType: type.toLowerCase() as AccountType,
-          repositoryId
-        })
-        const { _id } = created
-        console.log(`data installation created ${_id} ${id} ${targetId} ${repositoryId} active`)
-      }
-    }
-  }
+  private async handleCheckSuite(data: ISerializable) {
+    const checkSuite = await assertCheckSuiteEvent(data as IGithubCheckSuiteEvent)
 
-  private async handleInstallationRepositoryRemoved(installation: IInstallationRepositoryEvent) {
-    const { id, targetId, repositories } = installation
-    for (const repositoryId of repositories) {
-      console.log(`event installation repository removed ${id} ${targetId} ${repositoryId}`)
-      const existingInstallation = await this.installations.byRepositoryId(repositoryId)
-      if (existingInstallation) {
-        const { _id } = existingInstallation
-        await this.installations.setState(existingInstallation, State.Deleted)
-        console.log(`data installation updated ${_id} deleted`)
-      } else {
-        console.log(`data installation unknown ${id} ${targetId} ${repositoryId}`)
-      }
-    }
-  }
+    const {
+      installationId,
+      repositoryName,
+      repositoryOwner,
+      commit
+    } = checkSuite
 
+    // todo: Fetch the PR owners karma...
+
+    await this.github.createCheckRun({
+      installationId,
+      repositoryName,
+      repositoryOwner,
+      commit
+    })
+  }
 }

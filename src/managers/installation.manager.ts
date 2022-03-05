@@ -1,5 +1,6 @@
-import { gql } from "../../deps/graphql.ts"
-import { FaunaService } from "../services/fauna.service.ts";
+import { ObjectId } from "../../deps/mongo.ts";
+import { NotFoundError } from "../errors/mod.ts";
+import { MongoService } from "../services/mongo.service.ts";
 import {
   State,
   AccountType,
@@ -14,7 +15,9 @@ type CreateInstallationInput = {
 }
 
 export class InstallationManager {
-  constructor(private readonly fauna: FaunaService) { }
+  constructor(
+    private readonly mongo: MongoService,
+  ) { }
 
   // createInstallation(
   //   # 'Installation' input values
@@ -38,71 +41,42 @@ export class InstallationManager {
   // state: State!
 
   public async byRepositoryId(repositoryId: number): Promise<Installation | undefined> {
-    const res = await this.fauna.query<{ installationsByRepository: { data: Installation[] } }>(
-      gql`
-        query InstallationGetByRepositoryId($repositoryId:Int!) {
-          installationsByRepository(repositoryId: $repositoryId) {
-            data {
-              _id
-              _ts
-              state
-              installationId
-              targetId
-              targetType
-              repositoryId
-            }
-          }
-        }
-      `,
-      { repositoryId }
-    )
+    return await this.mongo.installations.findOne({
+      repositoryId
+    })
+  }
 
-    return res?.installationsByRepository?.data?.[0];
+  public async findOne(_id: string | ObjectId): Promise<Installation | undefined> {
+    return await this.mongo.installations.findOne({ _id })
+  }
+
+  public async get(_id: string | ObjectId): Promise<Installation> {
+    const installation = await this.findOne(_id);
+    if (!installation) {
+      throw new NotFoundError("Installation", _id)
+    }
+    return installation
   }
 
   public async create(data: CreateInstallationInput): Promise<Installation> {
-    const { installationId, targetId, targetType, repositoryId } = data;
-    const { createInstallation } = await this.fauna.query<{ createInstallation: Installation }>(
-      gql`
-        mutation InstallationCreate(
-          $installationId: Int!
-          $targetId: Int!
-          $targetType: AccountType!
-          $repositoryId: Int!
-          $state: State!
-        ) {
-          createInstallation(
-            data: {
-              installationId: $installationId
-              targetId: $targetId
-              targetType: $targetType
-              repositoryId: $repositoryId
-              state: $state
-            }
-          ) {
-            _id
-            installationId
-            targetId
-            targetType
-            repositoryId
-            state
-          }
-        }
-      `,
+    const now = new Date()
+    const { installationId, repositoryId, targetId, targetType } = data;
+    const createdId = await this.mongo.installations.insertOne(
       {
         installationId,
+        repositoryId,
         targetId,
         targetType,
-        repositoryId,
-        state: State.Active
+        state: State.Active,
+        _ts: now.getTime(),
       }
-    ) ?? {}
+    )
 
-    if (!createInstallation) {
+    if (!createdId) {
       throw new Error('failed to create installation')
     }
 
-    return createInstallation
+    return await this.get(createdId)
   }
 
   public async setState(
@@ -110,33 +84,14 @@ export class InstallationManager {
     state: State
   ): Promise<Installation> {
     const { _id } = installation
-    const { partialUpdateInstallation } = await this.fauna.query<{ partialUpdateInstallation: Installation }>(
-      gql`
-        mutation InstallationSetState(
-          $id: ID!
-          $state: State!
-        ) {
-          partialUpdateInstallation(
-            id: $id
-            data: {
-              state: $state
-            }
-          ) {
-            _id
-            state
-          }
-        }
-      `,
+    await this.mongo.installations.updateOne(
+      { _id },
       {
-        id: _id,
-        state
+        $set: {
+          state
+        }
       }
-    ) ?? {}
-
-    if (!partialUpdateInstallation) {
-      throw new Error('failed to create installation')
-    }
-
-    return partialUpdateInstallation
+    );
+    return this.get(_id);
   }
 }
