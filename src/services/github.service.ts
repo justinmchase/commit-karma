@@ -90,8 +90,8 @@ export class GithubService {
     })
 
     const { ok, status } = res
-    if (!ok || status != Status.OK) {
-      throw new UnexpectedStatusError(Status.OK, status);
+    if (!ok || status != Status.Created) {
+      throw new UnexpectedStatusError(Status.Created, status);
     }
   }
 }
