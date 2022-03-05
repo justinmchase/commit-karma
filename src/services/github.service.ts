@@ -79,7 +79,7 @@ export class GithubService {
 
     const token = await this.token(installationId);
     const json = JSON.stringify(checkRun)
-    const res = await fetch(`/repos/${repositoryOwner}/${repositoryName}/check-runs`, {
+    const res = await fetch(`https://api.github.com/repos/${repositoryOwner}/${repositoryName}/check-runs`, {
       method: "POST",
       headers: new Headers({
         "Authorization": `token ${token}`,
