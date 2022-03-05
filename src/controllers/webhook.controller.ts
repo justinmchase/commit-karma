@@ -243,7 +243,7 @@ export class WebhookController extends Controller {
     switch (action) {
       case GithubCheckSuiteActions.Requested:
       case GithubCheckSuiteActions.Rerequested:
-        console.log(`event check_suite check_run_create ${action} ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`)
+        console.log(`event check_suite ${action} check_run_create ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`)
         await this.github.createCheckRun({
           installationId,
           repositoryName,
@@ -253,7 +253,7 @@ export class WebhookController extends Controller {
         break;
       case GithubCheckSuiteActions.Completed:
       default:
-        console.log(`event check_suite skipped ${action} ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`)
+        console.log(`event check_suite ${action} skipped ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`)
         break;
     }
   }
