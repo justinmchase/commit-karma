@@ -9,6 +9,7 @@ import {
 } from "../data/mod.ts"
 import {
   GithubEvents,
+  GithubCheckSuiteActions,
   GithubIssueCommentActions,
   GithubPullRequestReviewCommentActions,
   IGithubIssueCommentEvent,
@@ -79,6 +80,9 @@ export class WebhookController extends Controller {
           break;
         case GithubEvents.CheckSuite:
           await this.handleCheckSuite(data);
+          break;
+        case GithubEvents.CheckRun:
+          console.log(`event check_run ${data.action} skipped`);
           break;
         default:
           console.log('unknown github event:', githubEvent)
@@ -229,19 +233,28 @@ export class WebhookController extends Controller {
     const checkSuite = await assertCheckSuiteEvent(data as IGithubCheckSuiteEvent)
 
     const {
+      action,
       installationId,
       repositoryName,
       repositoryOwner,
       commit
     } = checkSuite
 
-    // todo: Fetch the PR owners karma...
-
-    await this.github.createCheckRun({
-      installationId,
-      repositoryName,
-      repositoryOwner,
-      commit
-    })
+    switch (action) {
+      case GithubCheckSuiteActions.Requested:
+      case GithubCheckSuiteActions.Rerequested:
+        console.log(`event check_suite check_run_create ${action} ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`)
+        await this.github.createCheckRun({
+          installationId,
+          repositoryName,
+          repositoryOwner,
+          commit
+        });
+        break;
+      case GithubCheckSuiteActions.Completed:
+      default:
+        console.log(`event check_suite skipped ${action} ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`)
+        break;
+    }
   }
 }
