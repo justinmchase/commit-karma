@@ -41,13 +41,13 @@ export function assertPullRequestEvent(
       id: pullRequestId,
       user: { id: userId, login: userLogin },
       head: {
-        sha: commit
-      }
+        sha: commit,
+      },
     },
     repository: {
       id: repositoryId,
       owner: { login: repositoryOwner },
-      name: repositoryName
+      name: repositoryName,
     },
   } = data;
 
