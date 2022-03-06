@@ -100,8 +100,6 @@ export class GithubService {
     const checkRun: IGithubCreateCheckRun = {
       name: 'commit-karma',
       head_sha: commit,
-      // external_id: todo: mongo record _id ?
-      // details_url: todo: send to a page that renders karma details?
       status: GithubCheckRunStatus.Completed,
       started_at: now.toISOString(),
       completed_at: now.toISOString(),
