@@ -1,48 +1,22 @@
-type User {
-  gid: Int!
-  nid: Int!
-  login: String!
+
+enum State {
+  active
+  deleted
+}
+
+enum AccountType {
+  user
 }
 
 type Installation {
-  gid: Int!
-  appId: Int!
-  senderId: ID!
-  lastAction: String!
+  installationId: Int! @unique(index: "unique_repository")
+  repositoryId: Int! @unique(index: "unique_repository")
+  targetId: Int!
+  targetType: AccountType!
+  state: State!
 }
 
-type Repo {
-  gid: Int!
-  nid: ID!
-  ownerId: ID!
-  installationId: ID!
-  name: String!
-}
-
-type Suite {
-  gid: Int!
-  nid: ID!
-  prIds: [ID!]!
-  installationId: ID!
-  branch: String!
-  head: String!
-}
-
-enum PullRequestState {
-  open
-  closed
-}
-
-type PullRequest {
-  gid: Int!
-  nid: String!
-  number: Int!
-  repoId: ID!
-  senderId: ID!
-  installationId: ID!
-  head: String!
-  state: PullRequestState!
-  title: String!
-  draft: Boolean!
-  merged: Boolean!
+type Query {
+  # allInstallations: [Installation!]
+  installationsByRepository(repositoryId: Int!): [Installation!]! @resolver(name: "installation_by_repository", paginated: true) 
 }

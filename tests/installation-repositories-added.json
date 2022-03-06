@@ -1,0 +1,86 @@
+{
+  "action": "added",
+  "installation": {
+    "id": 23211748,
+    "account": {
+      "login": "justinmchase",
+      "id": 10974,
+      "node_id": "MDQ6VXNlcjEwOTc0",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10974?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/justinmchase",
+      "html_url": "https://github.com/justinmchase",
+      "followers_url": "https://api.github.com/users/justinmchase/followers",
+      "following_url": "https://api.github.com/users/justinmchase/following{/other_user}",
+      "gists_url": "https://api.github.com/users/justinmchase/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/justinmchase/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/justinmchase/subscriptions",
+      "organizations_url": "https://api.github.com/users/justinmchase/orgs",
+      "repos_url": "https://api.github.com/users/justinmchase/repos",
+      "events_url": "https://api.github.com/users/justinmchase/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/justinmchase/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "repository_selection": "selected",
+    "access_tokens_url": "https://api.github.com/app/installations/23211748/access_tokens",
+    "repositories_url": "https://api.github.com/installation/repositories",
+    "html_url": "https://github.com/settings/installations/23211748",
+    "app_id": 37724,
+    "app_slug": "commit-karma",
+    "target_id": 10974,
+    "target_type": "User",
+    "permissions": {
+      "checks": "write",
+      "issues": "read",
+      "metadata": "read",
+      "pull_requests": "read"
+    },
+    "events": [
+      "check_run",
+      "check_suite",
+      "pull_request",
+      "pull_request_review",
+      "pull_request_review_comment"
+    ],
+    "created_at": "2022-02-12T14:17:31.000-06:00",
+    "updated_at": "2022-02-12T14:17:31.000-06:00",
+    "single_file_name": null,
+    "has_multiple_single_files": false,
+    "single_file_paths": [],
+    "suspended_by": null,
+    "suspended_at": null
+  },
+  "repository_selection": "selected",
+  "repositories_added": [
+    {
+      "id": 262858068,
+      "node_id": "MDEwOlJlcG9zaXRvcnkyNjI4NTgwNjg=",
+      "name": "open-direct-data",
+      "full_name": "justinmchase/open-direct-data",
+      "private": true
+    }
+  ],
+  "repositories_removed": [],
+  "requester": null,
+  "sender": {
+    "login": "justinmchase",
+    "id": 10974,
+    "node_id": "MDQ6VXNlcjEwOTc0",
+    "avatar_url": "https://avatars.githubusercontent.com/u/10974?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/justinmchase",
+    "html_url": "https://github.com/justinmchase",
+    "followers_url": "https://api.github.com/users/justinmchase/followers",
+    "following_url": "https://api.github.com/users/justinmchase/following{/other_user}",
+    "gists_url": "https://api.github.com/users/justinmchase/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/justinmchase/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/justinmchase/subscriptions",
+    "organizations_url": "https://api.github.com/users/justinmchase/orgs",
+    "repos_url": "https://api.github.com/users/justinmchase/repos",
+    "events_url": "https://api.github.com/users/justinmchase/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/justinmchase/received_events",
+    "type": "User",
+    "site_admin": false
+  }
+}
