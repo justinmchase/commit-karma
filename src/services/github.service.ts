@@ -103,6 +103,12 @@ export class GithubService {
     const { kinds, score } = karma;
     const entries = Object.entries(kinds) as [InteractionKind, number][];
     const now = new Date();
+    const renderLine = (kind: InteractionKind, count: number) => {
+      const kindPhrase = GithubService.getKindPhrase(kind as InteractionKind);
+      const scoreSum = InteractionScore[kind] * count;
+      return `| ${kindPhrase} | ${count} | ${scoreSum} |`;
+    };
+
     const checkRun: IGithubCreateCheckRun = {
       name: "commit-karma",
       head_sha: commit,
@@ -115,13 +121,7 @@ export class GithubService {
         summary: `@${userLogin} has ${GithubService.getKarmaPhrase(score)}`,
         text: `| kinds | count | total |
 | ----- | ----- | ----- |
-${
-          entries.map(([kind, count]) =>
-            `| ${
-              GithubService.getKindPhrase(kind as InteractionKind)
-            } | ${count} | ${InteractionScore[kind] * count} |`
-          )
-        }
+${entries.map(([kind, count]) => renderLine(kind, count)).join("\n")}
 |       |       | ${score} |`,
         annotations: [],
         images: [],
