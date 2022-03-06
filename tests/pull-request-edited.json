@@ -40,18 +40,10 @@
     "merged_at": null,
     "merge_commit_sha": "d3e6b497faaf167cb7232be734d05beca8ed91f9",
     "assignee": null,
-    "assignees": [
-
-    ],
-    "requested_reviewers": [
-
-    ],
-    "requested_teams": [
-
-    ],
-    "labels": [
-
-    ],
+    "assignees": [],
+    "requested_reviewers": [],
+    "requested_teams": [],
+    "labels": [],
     "milestone": null,
     "draft": false,
     "commits_url": "https://api.github.com/repos/justinmchase/commit-karma/pulls/18/commits",
@@ -180,9 +172,7 @@
         },
         "allow_forking": true,
         "is_template": false,
-        "topics": [
-
-        ],
+        "topics": [],
         "visibility": "public",
         "forks": 0,
         "open_issues": 1,
@@ -317,9 +307,7 @@
         },
         "allow_forking": true,
         "is_template": false,
-        "topics": [
-
-        ],
+        "topics": [],
         "visibility": "public",
         "forks": 0,
         "open_issues": 1,
@@ -376,7 +364,6 @@
     "changed_files": 1
   },
   "changes": {
-
   },
   "repository": {
     "id": 201168994,
@@ -475,9 +462,7 @@
     },
     "allow_forking": true,
     "is_template": false,
-    "topics": [
-
-    ],
+    "topics": [],
     "visibility": "public",
     "forks": 0,
     "open_issues": 1,

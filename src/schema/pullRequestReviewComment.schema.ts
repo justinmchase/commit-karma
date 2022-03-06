@@ -15,27 +15,36 @@ const PullRequestReviewCommentEventSchema = {
     commentId: { type: "number" },
     commentUserId: { type: "number" },
     commentUserLogin: { type: "string" },
-  }
+  },
 } as Schema;
 
 export interface IPullRequestReviewCommentEvent {
-  action: GithubPullRequestReviewCommentActions
-  repositoryId: number
-  number: number
-  pullRequestId: number
-  pullRequestUserId: number
-  commentId: number
-  commentUserId: number
-  commentUserLogin: string
+  action: GithubPullRequestReviewCommentActions;
+  repositoryId: number;
+  number: number;
+  pullRequestId: number;
+  pullRequestUserId: number;
+  commentId: number;
+  commentUserId: number;
+  commentUserLogin: string;
 }
 
-export function assertPullRequestReviewCommentEvent(data: IGithubPullRequestReviewCommentEvent): IPullRequestReviewCommentEvent {
+export function assertPullRequestReviewCommentEvent(
+  data: IGithubPullRequestReviewCommentEvent,
+): IPullRequestReviewCommentEvent {
   const {
     action,
     repository: { id: repositoryId },
-    pull_request: { id: pullRequestId, number, user: { id: pullRequestUserId } },
-    comment: { id: commentId, user: { id: commentUserId, login: commentUserLogin } },
-  } = data
+    pull_request: {
+      id: pullRequestId,
+      number,
+      user: { id: pullRequestUserId },
+    },
+    comment: {
+      id: commentId,
+      user: { id: commentUserId, login: commentUserLogin },
+    },
+  } = data;
 
   const pullRequestReviewCommentEvent: IPullRequestReviewCommentEvent = {
     action,
@@ -46,9 +55,12 @@ export function assertPullRequestReviewCommentEvent(data: IGithubPullRequestRevi
     commentId,
     commentUserId,
     commentUserLogin,
-  }
+  };
 
-  const [error] = validate(PullRequestReviewCommentEventSchema, pullRequestReviewCommentEvent);
+  const [error] = validate(
+    PullRequestReviewCommentEventSchema,
+    pullRequestReviewCommentEvent,
+  );
   if (error) {
     const { instancePath, schemaPath } = error;
     throw new SchemaValidationError(
@@ -59,5 +71,5 @@ export function assertPullRequestReviewCommentEvent(data: IGithubPullRequestRevi
     );
   }
 
-  return pullRequestReviewCommentEvent
+  return pullRequestReviewCommentEvent;
 }

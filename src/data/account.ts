@@ -1,4 +1,3 @@
-
 export enum AccountType {
-  User = "user"
+  User = "user",
 }

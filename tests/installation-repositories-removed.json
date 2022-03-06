@@ -47,16 +47,12 @@
     "updated_at": "2022-02-12T20:17:31.000Z",
     "single_file_name": null,
     "has_multiple_single_files": false,
-    "single_file_paths": [
-
-    ],
+    "single_file_paths": [],
     "suspended_by": null,
     "suspended_at": null
   },
   "repository_selection": "selected",
-  "repositories_added": [
-
-  ],
+  "repositories_added": [],
   "repositories_removed": [
     {
       "id": 201168994,
