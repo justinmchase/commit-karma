@@ -32,6 +32,7 @@ export interface ICheckSuiteEvent {
 }
 
 export function assertCheckSuiteEvent(data: IGithubCheckSuiteEvent): ICheckSuiteEvent {
+  console.log(JSON.stringify(data, null, 2))
   const {
     action,
     installation: { id: installationId },
