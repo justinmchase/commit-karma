@@ -243,11 +243,17 @@ export class WebhookController extends Controller {
 
     const {
       action,
+      pullRequestId,
       installationId,
       repositoryName,
       repositoryOwner,
       commit
     } = checkSuite
+
+    if (!pullRequestId) {
+      console.log(`event check_suite ${action} no_pr ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`)
+      return;
+    }
 
     switch (action) {
       case GithubCheckSuiteActions.Requested:
@@ -272,7 +278,7 @@ export class WebhookController extends Controller {
     } = checkSuite
     const pullRequest = await this.interactions.searchOne({
       kind: InteractionKind.PullRequest,
-      id: pullRequestId
+      id: pullRequestId!
     })
     const { userId, userLogin } = pullRequest
     const karma = await this.interactions.calculateKarma(userId);
