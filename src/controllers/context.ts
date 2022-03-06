@@ -1,3 +1,3 @@
 export interface IContext {
-  secret?: string
+  isHtml?: boolean;
 }

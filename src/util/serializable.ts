@@ -1,5 +1,5 @@
-export type Serializable
-  = string
+export type Serializable =
+  | string
   | number
   | boolean
   | Date
@@ -8,8 +8,8 @@ export type Serializable
   | { toJson: () => string }
   | { toString(): () => string }
   | ISerializable
-  | Array<Serializable>
+  | Array<Serializable>;
 
 export interface ISerializable {
-  [key: string]: Serializable
+  [key: string]: Serializable;
 }

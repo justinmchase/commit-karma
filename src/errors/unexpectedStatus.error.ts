@@ -10,7 +10,7 @@ export class UnexpectedStatusError extends ApplicationError {
     super(
       Status.InternalServerError,
       ErrorCode.UnexpectedStatus,
-      `unexpected status ${actualStatus} was received, ${expectedStatus} was expected`
+      `unexpected status ${actualStatus} was received, ${expectedStatus} was expected`,
     );
   }
 }
