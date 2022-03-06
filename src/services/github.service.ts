@@ -51,7 +51,7 @@ export class GithubService {
       return "great karma!"
     } else if (score > 0) {
       return "good karma!"
-    } else if (score < 100) {
+    } else if (score < -100) {
       return "bad karma..."
     } else {
       return "neutral karma."
@@ -108,13 +108,15 @@ export class GithubService {
       conclusion: GithubCheckRunConclusion.Success,
       output: {
         title: 'commit-karma',
-        summary: `@${userLogin} has ${GithubService.getKarmaPhrase(score)}`,
-        text: `
+        summary: `
+        @${userLogin} has ${GithubService.getKarmaPhrase(score)}
+
         | kinds | count | total |
         | ----- | ----- | ----- |
         ${entries.map(([kind, count]) => `| ${GithubService.getKindPhrase(kind as InteractionKind)} | ${count} | ${InteractionScore[kind] * count} |`)}
         |       |       | ${score} |
         `,
+        text: undefined,
         annotations: [],
         images: []
       },

@@ -487,7 +487,7 @@ export interface IGithubCreateCheckRun extends ISerializable {
 export interface IGithubCheckRunOutput extends ISerializable {
   title: string // Required. The title of the check run.
   summary: string // Required. The summary of the check run. This parameter supports Markdown.
-  text: string // The details of the check run. This parameter supports Markdown.
+  text?: string // The details of the check run. This parameter supports Markdown.
   annotations: IGithubCheckRunAnnotation[]
   images: IGithubCheckRunImage[]
 }
