@@ -108,15 +108,11 @@ export class GithubService {
       conclusion: GithubCheckRunConclusion.Success,
       output: {
         title: 'commit-karma',
-        summary: `
-        @${userLogin} has ${GithubService.getKarmaPhrase(score)}
-
-        | kinds | count | total |
-        | ----- | ----- | ----- |
-        ${entries.map(([kind, count]) => `| ${GithubService.getKindPhrase(kind as InteractionKind)} | ${count} | ${InteractionScore[kind] * count} |`)}
-        |       |       | ${score} |
-        `,
-        text: undefined,
+        summary: `@${userLogin} has ${GithubService.getKarmaPhrase(score)}`,
+        text: `| kinds | count | total |
+| ----- | ----- | ----- |
+${entries.map(([kind, count]) => `| ${GithubService.getKindPhrase(kind as InteractionKind)} | ${count} | ${InteractionScore[kind] * count} |`)}
+|       |       | ${score} |`,
         annotations: [],
         images: []
       },
