@@ -17,6 +17,11 @@ type CreateInteractionInput = {
   score: number
 }
 
+export type Karma = {
+  kinds: Record<InteractionKind, number>
+  score: number
+}
+
 export class InteractionManager {
   constructor(
     private readonly mongo: MongoService,
@@ -70,5 +75,57 @@ export class InteractionManager {
     }
 
     return interaction;
+  }
+
+  public async calculateKarma(userId: number): Promise<Karma> {
+    const [karma] = await this.mongo.interactions.aggregate<Karma>([
+      {
+        $match: {
+          state: State.Active,
+          userId
+        }
+      },
+      {
+        $facet: {
+          kinds: [
+            {
+              $group: {
+                _id: "$kind",
+                v: { $sum: 1 },
+              }
+            },
+            {
+              $project: {
+                _id: 0,
+                k: "$_id",
+                v: "$v"
+              }
+            }
+          ],
+          score: [
+            {
+              $group: {
+                _id: 1,
+                score: { $sum: "$score" }
+              }
+            },
+            {
+              $unwind: "$score"
+            }
+          ]
+        }
+      },
+      {
+        $unwind: '$score'
+      },
+      {
+        $project: {
+          kinds: { $arrayToObject: "$kinds" },
+          score: "$score.score"
+        }
+      }
+    ]).toArray()
+
+    return karma ?? { kinds: {}, score: 0 } as Karma
   }
 }

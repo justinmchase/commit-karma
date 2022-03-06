@@ -9,6 +9,8 @@ const CheckSuiteEventSchema = {
   properties: {
     action: { type: "string" },
     installationId: { type: "number" },
+    userId: { type: "number" },
+    userLogin: { type: "string" },
     checkSuiteId: { type: "number" },
     repositoryId: { type: "number" },
     repositoryName: { type: "string" },
@@ -20,6 +22,8 @@ const CheckSuiteEventSchema = {
 export interface ICheckSuiteEvent {
   action: GithubCheckSuiteActions
   installationId: number
+  userId: number
+  userLogin: string
   checkSuiteId: number
   repositoryId: number
   repositoryName: string
@@ -34,6 +38,9 @@ export function assertCheckSuiteEvent(data: IGithubCheckSuiteEvent): ICheckSuite
     check_suite: {
       id: checkSuiteId,
       head_sha: commit,
+      pull_requests: [
+        { user: { id: userId, login: userLogin } }
+      ]
     },
     repository: {
       id: repositoryId,
@@ -47,6 +54,8 @@ export function assertCheckSuiteEvent(data: IGithubCheckSuiteEvent): ICheckSuite
   const checkSuiteEvent = {
     action,
     installationId,
+    userId,
+    userLogin,
     checkSuiteId,
     repositoryId,
     repositoryName,

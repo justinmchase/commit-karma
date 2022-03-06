@@ -8,6 +8,7 @@ import {
 const IssueCommentEventSchema = {
   properties: {
     action: { type: "string" },
+    installationId: { type: "number" },
     repositoryId: { type: "number" },
     number: { type: "number" },
     issueId: { type: "number" },

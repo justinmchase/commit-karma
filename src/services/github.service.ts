@@ -5,6 +5,8 @@ import {
   GithubCheckRunConclusion,
   IGithubCreateCheckRun,
 } from "../schema/github.ts"
+import { InteractionKind, InteractionScore } from "../data/interaction.ts";
+import { Karma } from "../managers/interaction.manager.ts";
 import { UnexpectedStatusError } from "../errors/mod.ts"
 
 export class GithubService {
@@ -44,13 +46,56 @@ export class GithubService {
     return token
   }
 
+  private static getKarmaPhrase(score: number) {
+    if (score > 100) {
+      return "great karma!"
+    } else if (score > 0) {
+      return "good karma!"
+    } else if (score < 100) {
+      return "bad karma..."
+    } else {
+      return "neutral karma."
+    }
+  }
+
+  private static getKarmaConclusion(score: number) {
+    if (score > 0) {
+      return GithubCheckRunConclusion.Success
+    } else if (score < 100) {
+      return GithubCheckRunConclusion.Failure
+    } else {
+      return GithubCheckRunConclusion.Neutral
+    }
+  }
+
+  private static getKindPhrase(kind: InteractionKind) {
+    switch (kind) {
+      case InteractionKind.PullRequest:
+        return "Pull Requests"
+      case InteractionKind.Issue:
+        return "Issues"
+      case InteractionKind.Comment:
+        return "Comments"
+      case InteractionKind.Review:
+        return "Reviews"
+      case InteractionKind.Merged:
+        return "Merged Pull Requests"
+      default:
+        return "Unknown"
+    }
+  }
+
   public async createCheckRun(args: {
     installationId: number,
+    userLogin: string,
     repositoryName: string,
     repositoryOwner: string
     commit: string,
+    karma: Karma,
   }) {
-    const { installationId, repositoryName, repositoryOwner, commit } = args
+    const { installationId, userLogin, repositoryName, repositoryOwner, commit, karma } = args
+    const { kinds, score } = karma
+    const entries = Object.entries(kinds) as [InteractionKind, number][]
     const now = new Date()
     const checkRun: IGithubCreateCheckRun = {
       name: 'commit-karma',
@@ -63,13 +108,12 @@ export class GithubService {
       conclusion: GithubCheckRunConclusion.Success,
       output: {
         title: 'commit-karma',
-        summary: '@justinmchase has good karma!',
+        summary: `@${userLogin} has ${GithubService.getKarmaPhrase(score)}`,
         text: `
-        # Summary
-        +10 karma
-        10 repos
-        100 code reviews
-        1000 issues
+        | kinds | count | total |
+        | ----- | ----- | ----- |
+        ${entries.map(([kind, count]) => `| ${GithubService.getKindPhrase(kind as InteractionKind)} | ${count} | ${InteractionScore[kind] * count} |`)}
+        |       |       | ${score} |
         `,
         annotations: [],
         images: []

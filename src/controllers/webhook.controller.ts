@@ -17,6 +17,7 @@ import {
   IGithubPullRequestReviewEvent,
   IGithubPullRequestReviewCommentEvent,
   IGithubCheckSuiteEvent,
+  ICheckSuiteEvent,
   assertCheckSuiteEvent,
   assertIssueCommentEvent,
   assertPullRequestEvent,
@@ -235,6 +236,7 @@ export class WebhookController extends Controller {
     const {
       action,
       installationId,
+      userLogin,
       repositoryName,
       repositoryOwner,
       commit
@@ -243,18 +245,33 @@ export class WebhookController extends Controller {
     switch (action) {
       case GithubCheckSuiteActions.Requested:
       case GithubCheckSuiteActions.Rerequested:
-        console.log(`event check_suite ${action} check_run_create ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`)
-        await this.github.createCheckRun({
-          installationId,
-          repositoryName,
-          repositoryOwner,
-          commit
-        });
+        console.log(`event check_suite ${action} check_run_create ${installationId} ${userLogin} ${repositoryOwner}/${repositoryName} ${commit}`)
+        await this.handleCheckSuiteRequested(checkSuite);
         break;
       case GithubCheckSuiteActions.Completed:
       default:
-        console.log(`event check_suite ${action} skipped ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`)
+        console.log(`event check_suite ${action} skipped ${installationId} ${userLogin} ${repositoryOwner}/${repositoryName} ${commit}`)
         break;
     }
+  }
+
+  private async handleCheckSuiteRequested(checkSuite: ICheckSuiteEvent) {
+    const {
+      installationId,
+      userId,
+      userLogin,
+      repositoryName,
+      repositoryOwner,
+      commit
+    } = checkSuite
+    const karma = await this.interactions.calculateKarma(userId);
+    await this.github.createCheckRun({
+      installationId,
+      userLogin,
+      repositoryName,
+      repositoryOwner,
+      commit,
+      karma
+    });
   }
 }
