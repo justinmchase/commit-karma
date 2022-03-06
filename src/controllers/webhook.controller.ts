@@ -111,6 +111,7 @@ export class WebhookController extends Controller {
       commentId,
       commentUserId,
       issueUserId,
+      issueUserLogin,
     } = issueComment
 
     if (issueUserId === commentUserId) {
@@ -132,6 +133,7 @@ export class WebhookController extends Controller {
       number,
       id: commentId,
       userId: issueUserId,
+      userLogin: issueUserLogin,
       score
     })
   }
@@ -145,6 +147,7 @@ export class WebhookController extends Controller {
       pullRequestId,
       number,
       userId,
+      userLogin,
     } = pullRequest
 
     const kind = InteractionKind.PullRequest;
@@ -157,6 +160,7 @@ export class WebhookController extends Controller {
       number,
       id: pullRequestId,
       userId: userId,
+      userLogin: userLogin,
       score
     })
   }
@@ -172,6 +176,7 @@ export class WebhookController extends Controller {
       pullRequestUserId,
       reviewId,
       reviewUserId,
+      reviewUserLogin,
     } = pullRequest
 
     if (pullRequestUserId === reviewUserId) {
@@ -190,6 +195,7 @@ export class WebhookController extends Controller {
       number,
       id: reviewId,
       userId: reviewUserId,
+      userLogin: reviewUserLogin,
       score
     })
   }
@@ -205,6 +211,7 @@ export class WebhookController extends Controller {
       pullRequestUserId,
       commentId,
       commentUserId,
+      commentUserLogin,
     } = pullRequest
 
     if (pullRequestUserId === commentUserId) {
@@ -226,6 +233,7 @@ export class WebhookController extends Controller {
       number,
       id: commentId,
       userId: commentUserId,
+      userLogin: commentUserLogin,
       score
     })
   }
@@ -236,7 +244,6 @@ export class WebhookController extends Controller {
     const {
       action,
       installationId,
-      userLogin,
       repositoryName,
       repositoryOwner,
       commit
@@ -245,12 +252,12 @@ export class WebhookController extends Controller {
     switch (action) {
       case GithubCheckSuiteActions.Requested:
       case GithubCheckSuiteActions.Rerequested:
-        console.log(`event check_suite ${action} check_run_create ${installationId} ${userLogin} ${repositoryOwner}/${repositoryName} ${commit}`)
+        console.log(`event check_suite ${action} check_run_create ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`)
         await this.handleCheckSuiteRequested(checkSuite);
         break;
       case GithubCheckSuiteActions.Completed:
       default:
-        console.log(`event check_suite ${action} skipped ${installationId} ${userLogin} ${repositoryOwner}/${repositoryName} ${commit}`)
+        console.log(`event check_suite ${action} skipped ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`)
         break;
     }
   }
@@ -258,12 +265,16 @@ export class WebhookController extends Controller {
   private async handleCheckSuiteRequested(checkSuite: ICheckSuiteEvent) {
     const {
       installationId,
-      userId,
-      userLogin,
+      pullRequestId,
       repositoryName,
       repositoryOwner,
       commit
     } = checkSuite
+    const pullRequest = await this.interactions.searchOne({
+      kind: InteractionKind.PullRequest,
+      id: pullRequestId
+    })
+    const { userId, userLogin } = pullRequest
     const karma = await this.interactions.calculateKarma(userId);
     await this.github.createCheckRun({
       installationId,

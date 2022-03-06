@@ -14,6 +14,7 @@ type CreateInteractionInput = {
   number: number
   id: number
   userId: number
+  userLogin: string
   score: number
 }
 
@@ -32,16 +33,31 @@ export class InteractionManager {
   }
 
   public async get(_id: string | ObjectId): Promise<Interaction> {
-    const installation = await this.findOne(_id);
-    if (!installation) {
-      throw new NotFoundError("Installation", _id)
+    const interaction = await this.findOne(_id);
+    if (!interaction) {
+      throw new NotFoundError("Interaction", _id)
     }
-    return installation
+    return interaction
+  }
+
+  public async searchOne(args: {
+    kind: InteractionKind
+    id: number
+  }): Promise<Interaction> {
+    const { kind, id } = args
+    const interaction = await this.mongo.interactions.findOne({
+      kind,
+      id,
+    })
+    if (!interaction) {
+      throw new NotFoundError("Interaction", `${kind}.${id}`)
+    }
+    return interaction
   }
 
   public async upsert(data: CreateInteractionInput): Promise<Interaction> {
     const now = new Date()
-    const { kind, state, repositoryId, number, id, score, userId } = data;
+    const { kind, state, repositoryId, number, id, score, userId, userLogin } = data;
     const interaction = await this.mongo.interactions.findAndModify(
       {
         kind,
@@ -58,6 +74,7 @@ export class InteractionManager {
             state,
             _ts: now.getTime(),
             score,
+            userLogin,
           },
           $setOnInsert: {
             kind,

@@ -14,6 +14,7 @@ const PullRequestReviewCommentEventSchema = {
     pullRequestUserId: { type: "number" },
     commentId: { type: "number" },
     commentUserId: { type: "number" },
+    commentUserLogin: { type: "string" },
   }
 } as Schema;
 
@@ -25,6 +26,7 @@ export interface IPullRequestReviewCommentEvent {
   pullRequestUserId: number
   commentId: number
   commentUserId: number
+  commentUserLogin: string
 }
 
 export function assertPullRequestReviewCommentEvent(data: IGithubPullRequestReviewCommentEvent): IPullRequestReviewCommentEvent {
@@ -32,7 +34,7 @@ export function assertPullRequestReviewCommentEvent(data: IGithubPullRequestRevi
     action,
     repository: { id: repositoryId },
     pull_request: { id: pullRequestId, number, user: { id: pullRequestUserId } },
-    comment: { id: commentId, user: { id: commentUserId } },
+    comment: { id: commentId, user: { id: commentUserId, login: commentUserLogin } },
   } = data
 
   const pullRequestReviewCommentEvent: IPullRequestReviewCommentEvent = {
@@ -43,6 +45,7 @@ export function assertPullRequestReviewCommentEvent(data: IGithubPullRequestRevi
     pullRequestUserId,
     commentId,
     commentUserId,
+    commentUserLogin,
   }
 
   const [error] = validate(PullRequestReviewCommentEventSchema, pullRequestReviewCommentEvent);

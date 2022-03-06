@@ -12,6 +12,7 @@ const PullRequestEventSchema = {
     pullRequestId: { type: "number" },
     number: { type: "number" },
     userId: { type: "number" },
+    userLogin: { type: "string" },
   }
 } as Schema;
 
@@ -21,13 +22,14 @@ export interface IPullRequestEvent {
   pullRequestId: number
   number: number
   userId: number
+  userLogin: string
 }
 
 export function assertPullRequestEvent(data: IGithubPullRequestEvent): IPullRequestEvent {
   const {
     action,
     number,
-    pull_request: { id: pullRequestId, user: { id: userId } },
+    pull_request: { id: pullRequestId, user: { id: userId, login: userLogin } },
     repository: { id: repositoryId },
   } = data
 
@@ -36,7 +38,8 @@ export function assertPullRequestEvent(data: IGithubPullRequestEvent): IPullRequ
     repositoryId,
     pullRequestId,
     number,
-    userId
+    userId,
+    userLogin,
   }
 
   const [error] = validate(PullRequestEventSchema, pullRequestEvent);

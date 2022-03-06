@@ -13,6 +13,7 @@ const IssueCommentEventSchema = {
     number: { type: "number" },
     issueId: { type: "number" },
     issueUserId: { type: "number" },
+    issueUserLogin: { type: "string" },
     commentId: { type: "number" },
     commentUserId: { type: "number" },
   }
@@ -24,6 +25,7 @@ export interface IIssueCommentEvent {
   number: number
   issueId: number
   issueUserId: number
+  issueUserLogin: string
   commentId: number
   commentUserId: number
 }
@@ -31,7 +33,7 @@ export interface IIssueCommentEvent {
 export function assertIssueCommentEvent(data: IGithubIssueCommentEvent): IIssueCommentEvent {
   const {
     action,
-    issue: { id: issueId, number, user: { id: issueUserId } },
+    issue: { id: issueId, number, user: { id: issueUserId, login: issueUserLogin } },
     comment: { id: commentId, user: { id: commentUserId } },
     repository: { id: repositoryId },
     installation: { id: installationId }
@@ -44,6 +46,7 @@ export function assertIssueCommentEvent(data: IGithubIssueCommentEvent): IIssueC
     number,
     issueId,
     issueUserId,
+    issueUserLogin,
     commentId,
     commentUserId,
   }

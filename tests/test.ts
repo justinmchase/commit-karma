@@ -1,8 +1,9 @@
 
+import { Status } from '../deps/oak.ts';
 import { assertObjectMatch, readableStreamFromReader } from "../deps/std.ts";
 
 const testCases = [
-  { event: 'installation', action: 'created' },
+  { event: 'installation', action: 'created', status: Status.OK },
   { event: 'installation', action: 'deleted' },
   { event: 'installation-repositories', action: 'added' },
   { event: 'installation-repositories', action: 'removed' },
@@ -10,9 +11,10 @@ const testCases = [
   { event: 'issue-comment', action: 'created', number: 1 },
   { event: 'issue-comment', action: 'edited' },
   { event: 'pull-request', action: 'edited' },
+  // { event: 'check-suite', action: 'requested', status: Status.Created },
 ]
 
-for (const { event, action, number } of testCases) {
+for (const { event, action, number, status: expectedStatus = Status.OK } of testCases) {
   Deno.test({
     name: `${event} ${action} ${String(number).padStart(2, "0")}`,
     async fn() {
@@ -35,7 +37,7 @@ for (const { event, action, number } of testCases) {
         { ok, status },
         {
           ok: true,
-          status: 200
+          status: expectedStatus
         }
       )
     }

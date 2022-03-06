@@ -25,5 +25,6 @@ export type Interaction = {
   id: number // issue, pull_request, comment, etc.
   number: number
   userId: number
+  userLogin: string
   score: number
 }
