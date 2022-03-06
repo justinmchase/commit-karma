@@ -1,7 +1,5 @@
 ![Commit Karma Logo](./assets/logo.png)
 
-# commit-karma
-
 Give one to get one!
 
 This app tracks Code Reviews and Pull Requests across all projects with Commit
@@ -14,14 +12,8 @@ Go to the Apps Marketplace page to configure installation
 
 https://github.com/apps/commit-karma
 
-## Setup
-
-```sh
-deno run -A mod.ts
-```
-
 ## License
 
-[ISC](LICENSE) © 2019 Justin Chase <justin.m.chase@gmail.com>
+[ISC](LICENSE) © 2022 Justin Chase <justin.m.chase@gmail.com>
 
 [Privacy Policy](assets/PRIVACY.md)
