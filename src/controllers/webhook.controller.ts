@@ -54,47 +54,39 @@ export class WebhookController extends Controller {
   }
 
   private async handler(req: Request, res: Response) {
-    try {
-      const githubEvent = req.headers.get("X-GitHub-Event")
-      const body = req.body({ type: "json" })
-      const data = await body.value as ISerializable
+    const githubEvent = req.headers.get("X-GitHub-Event")
+    const body = req.body({ type: "json" })
+    const data = await body.value as ISerializable
 
-      // todo verify the sha256 signature
-      // X-Hub-Signature-256: sha256=a33f1336e1afdce5b4ad67dc0182b5393cc7631559df93636e0159a45a4bdf69
+    // todo verify the sha256 signature
+    // X-Hub-Signature-256: sha256=a33f1336e1afdce5b4ad67dc0182b5393cc7631559df93636e0159a45a4bdf69
 
-      switch (githubEvent) {
-        case GithubEvents.Installation:
-        case GithubEvents.InstallationRepositories:
-          // ignore
-          break;
-        case GithubEvents.IssueComment:
-          await this.handleIssueComment(data);
-          break;
-        case GithubEvents.PullRequest:
-          await this.handlePullRequest(data);
-          break;
-        case GithubEvents.PullRequestReview:
-          await this.handlePullRequestReview(data);
-          break;
-        case GithubEvents.PullRequestReviewComment:
-          await this.handlePullRequestReviewComment(data);
-          break;
-        case GithubEvents.CheckSuite:
-          await this.handleCheckSuite(data);
-          break;
-        case GithubEvents.CheckRun:
-          console.log(`event check_run ${data.action} skipped`);
-          break;
-        default:
-          console.log('unknown github event:', githubEvent)
-          throw new NotImplementedError(`${githubEvent} ${data.action} not implemented`)
-      }
-    } catch (err) {
-      console.log({ ...err }, err)
-      res.status = err.status ?? Status.InternalServerError;
-      res.body = { ok: false, message: err.message };
-      res.headers.set('Content-Type', 'application/json');
-      return;
+    switch (githubEvent) {
+      case GithubEvents.Installation:
+      case GithubEvents.InstallationRepositories:
+        // ignore
+        break;
+      case GithubEvents.IssueComment:
+        await this.handleIssueComment(data);
+        break;
+      case GithubEvents.PullRequest:
+        await this.handlePullRequest(data);
+        break;
+      case GithubEvents.PullRequestReview:
+        await this.handlePullRequestReview(data);
+        break;
+      case GithubEvents.PullRequestReviewComment:
+        await this.handlePullRequestReviewComment(data);
+        break;
+      case GithubEvents.CheckSuite:
+        await this.handleCheckSuite(data);
+        break;
+      case GithubEvents.CheckRun:
+        console.log(`event check_run ${data.action} skipped`);
+        break;
+      default:
+        console.log('unknown github event:', githubEvent)
+        throw new NotImplementedError(`${githubEvent} ${data.action} not implemented`)
     }
 
     res.status = Status.OK;
