@@ -15,27 +15,36 @@ const PullRequestReviewEventSchema = {
     reviewId: { type: "number" },
     reviewUserId: { type: "number" },
     reviewUserLogin: { type: "string" },
-  }
+  },
 } as Schema;
 
 export interface IPullRequestReviewEvent {
-  action: GithubPullRequestReviewActions
-  repositoryId: number
-  number: number
-  pullRequestId: number
-  pullRequestUserId: number
-  reviewId: number
-  reviewUserId: number
-  reviewUserLogin: string
+  action: GithubPullRequestReviewActions;
+  repositoryId: number;
+  number: number;
+  pullRequestId: number;
+  pullRequestUserId: number;
+  reviewId: number;
+  reviewUserId: number;
+  reviewUserLogin: string;
 }
 
-export function assertPullRequestReviewEvent(data: IGithubPullRequestReviewEvent): IPullRequestReviewEvent {
+export function assertPullRequestReviewEvent(
+  data: IGithubPullRequestReviewEvent,
+): IPullRequestReviewEvent {
   const {
     action,
     repository: { id: repositoryId },
-    pull_request: { id: pullRequestId, number, user: { id: pullRequestUserId } },
-    review: { id: reviewId, user: { id: reviewUserId, login: reviewUserLogin } },
-  } = data
+    pull_request: {
+      id: pullRequestId,
+      number,
+      user: { id: pullRequestUserId },
+    },
+    review: {
+      id: reviewId,
+      user: { id: reviewUserId, login: reviewUserLogin },
+    },
+  } = data;
 
   const pullRequestReviewEvent: IPullRequestReviewEvent = {
     action,
@@ -46,9 +55,12 @@ export function assertPullRequestReviewEvent(data: IGithubPullRequestReviewEvent
     reviewId,
     reviewUserId,
     reviewUserLogin,
-  }
+  };
 
-  const [error] = validate(PullRequestReviewEventSchema, pullRequestReviewEvent);
+  const [error] = validate(
+    PullRequestReviewEventSchema,
+    pullRequestReviewEvent,
+  );
   if (error) {
     const { instancePath, schemaPath } = error;
     throw new SchemaValidationError(
@@ -59,5 +71,5 @@ export function assertPullRequestReviewEvent(data: IGithubPullRequestReviewEvent
     );
   }
 
-  return pullRequestReviewEvent
+  return pullRequestReviewEvent;
 }

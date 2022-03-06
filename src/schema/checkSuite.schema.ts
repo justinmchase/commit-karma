@@ -1,9 +1,6 @@
 import { Schema, validate } from "../../deps/jtd.ts";
 import { SchemaValidationError } from "../errors/mod.ts";
-import {
-  GithubCheckSuiteActions,
-  IGithubCheckSuiteEvent,
-} from "./github.ts";
+import { GithubCheckSuiteActions, IGithubCheckSuiteEvent } from "./github.ts";
 
 const CheckSuiteEventSchema = {
   properties: {
@@ -17,21 +14,23 @@ const CheckSuiteEventSchema = {
   },
   optionalProperties: {
     pullRequestId: { type: "number" },
-  }
+  },
 } as Schema;
 
 export interface ICheckSuiteEvent {
-  action: GithubCheckSuiteActions
-  installationId: number
-  pullRequestId?: number
-  checkSuiteId: number
-  repositoryId: number
-  repositoryName: string
-  repositoryOwner: string
-  commit: string
+  action: GithubCheckSuiteActions;
+  installationId: number;
+  pullRequestId?: number;
+  checkSuiteId: number;
+  repositoryId: number;
+  repositoryName: string;
+  repositoryOwner: string;
+  commit: string;
 }
 
-export function assertCheckSuiteEvent(data: IGithubCheckSuiteEvent): ICheckSuiteEvent {
+export function assertCheckSuiteEvent(
+  data: IGithubCheckSuiteEvent,
+): ICheckSuiteEvent {
   const {
     action,
     installation: { id: installationId },
@@ -39,17 +38,17 @@ export function assertCheckSuiteEvent(data: IGithubCheckSuiteEvent): ICheckSuite
       id: checkSuiteId,
       head_sha: commit,
       pull_requests: [
-        { id: pullRequestId } = { id: undefined }
-      ]
+        { id: pullRequestId } = { id: undefined },
+      ],
     },
     repository: {
       id: repositoryId,
       name: repositoryName,
       owner: {
         login: repositoryOwner,
-      }
+      },
     },
-  } = data
+  } = data;
 
   const checkSuiteEvent = {
     action,
@@ -60,7 +59,7 @@ export function assertCheckSuiteEvent(data: IGithubCheckSuiteEvent): ICheckSuite
     repositoryName,
     repositoryOwner,
     commit,
-  }
+  };
 
   const [error] = validate(CheckSuiteEventSchema, checkSuiteEvent);
   if (error) {
@@ -73,5 +72,5 @@ export function assertCheckSuiteEvent(data: IGithubCheckSuiteEvent): ICheckSuite
     );
   }
 
-  return checkSuiteEvent
+  return checkSuiteEvent;
 }

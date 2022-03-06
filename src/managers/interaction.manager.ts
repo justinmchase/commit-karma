@@ -1,70 +1,69 @@
 import { ObjectId } from "../../deps/mongo.ts";
 import { NotFoundError } from "../errors/mod.ts";
 import { MongoService } from "../services/mongo.service.ts";
-import {
-  State,
-  Interaction,
-  InteractionKind,
-} from "../data/mod.ts";
+import { Interaction, InteractionKind, State } from "../data/mod.ts";
 
 type CreateInteractionInput = {
-  kind: InteractionKind
-  state: State
-  repositoryId: number
-  number: number
-  id: number
-  userId: number
-  userLogin: string
-  score: number
-}
+  kind: InteractionKind;
+  state: State;
+  repositoryId: number;
+  number: number;
+  id: number;
+  userId: number;
+  userLogin: string;
+  score: number;
+};
 
 export type Karma = {
-  kinds: Record<InteractionKind, number>
-  score: number
-}
+  kinds: Record<InteractionKind, number>;
+  score: number;
+};
 
 export class InteractionManager {
   constructor(
     private readonly mongo: MongoService,
-  ) { }
+  ) {}
 
-  public async findOne(_id: string | ObjectId): Promise<Interaction | undefined> {
-    return await this.mongo.interactions.findOne({ _id })
+  public async findOne(
+    _id: string | ObjectId,
+  ): Promise<Interaction | undefined> {
+    return await this.mongo.interactions.findOne({ _id });
   }
 
   public async get(_id: string | ObjectId): Promise<Interaction> {
     const interaction = await this.findOne(_id);
     if (!interaction) {
-      throw new NotFoundError("Interaction", _id)
+      throw new NotFoundError("Interaction", _id);
     }
-    return interaction
+    return interaction;
   }
 
   public async searchOne(args: {
-    kind: InteractionKind
-    id: number
+    kind: InteractionKind;
+    id: number;
   }): Promise<Interaction> {
-    const { kind, id } = args
+    const { kind, id } = args;
     const interaction = await this.mongo.interactions.findOne({
       kind,
       id,
-    })
+    });
     if (!interaction) {
-      throw new NotFoundError("Interaction", `${kind}.${id}`)
+      throw new NotFoundError("Interaction", `${kind}.${id}`);
     }
-    return interaction
+    return interaction;
   }
 
   public async upsert(data: CreateInteractionInput): Promise<Interaction> {
-    const now = new Date()
-    const { kind, state, repositoryId, number, id, score, userId, userLogin } = data;
+    const now = new Date();
+    const { kind, state, repositoryId, number, id, score, userId, userLogin } =
+      data;
     const interaction = await this.mongo.interactions.findAndModify(
       {
         kind,
         repositoryId,
         number,
         id,
-        userId
+        userId,
       },
       {
         new: true,
@@ -81,14 +80,14 @@ export class InteractionManager {
             repositoryId,
             number,
             id,
-            userId
-          }
-        }
-      }
-    )
+            userId,
+          },
+        },
+      },
+    );
 
     if (!interaction) {
-      throw new Error('failed to create interaction')
+      throw new Error("failed to create interaction");
     }
 
     return interaction;
@@ -99,8 +98,8 @@ export class InteractionManager {
       {
         $match: {
           state: State.Active,
-          userId
-        }
+          userId,
+        },
       },
       {
         $facet: {
@@ -109,24 +108,24 @@ export class InteractionManager {
               $group: {
                 _id: "$kind",
                 v: { $sum: 1 },
-              }
-            }
+              },
+            },
           ],
           score: [
             {
               $group: {
                 _id: 1,
-                score: { $sum: "$score" }
-              }
+                score: { $sum: "$score" },
+              },
             },
             {
-              $unwind: "$score"
-            }
-          ]
-        }
+              $unwind: "$score",
+            },
+          ],
+        },
       },
       {
-        $unwind: '$score'
+        $unwind: "$score",
       },
       {
         $project: {
@@ -136,16 +135,16 @@ export class InteractionManager {
                 input: "$kinds",
                 in: {
                   "k": "$$this._id",
-                  "v": "$$this.v"
-                }
-              }
-            }
+                  "v": "$$this.v",
+                },
+              },
+            },
           },
-          score: "$score.score"
-        }
-      }
-    ]).toArray()
+          score: "$score.score",
+        },
+      },
+    ]).toArray();
 
-    return karma ?? { kinds: {}, score: 0 } as Karma
+    return karma ?? { kinds: {}, score: 0 } as Karma;
   }
 }

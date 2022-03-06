@@ -16,28 +16,34 @@ const IssueCommentEventSchema = {
     issueUserLogin: { type: "string" },
     commentId: { type: "number" },
     commentUserId: { type: "number" },
-  }
+  },
 } as Schema;
 
 export interface IIssueCommentEvent {
-  action: GithubIssueCommentActions
-  repositoryId: number
-  number: number
-  issueId: number
-  issueUserId: number
-  issueUserLogin: string
-  commentId: number
-  commentUserId: number
+  action: GithubIssueCommentActions;
+  repositoryId: number;
+  number: number;
+  issueId: number;
+  issueUserId: number;
+  issueUserLogin: string;
+  commentId: number;
+  commentUserId: number;
 }
 
-export function assertIssueCommentEvent(data: IGithubIssueCommentEvent): IIssueCommentEvent {
+export function assertIssueCommentEvent(
+  data: IGithubIssueCommentEvent,
+): IIssueCommentEvent {
   const {
     action,
-    issue: { id: issueId, number, user: { id: issueUserId, login: issueUserLogin } },
+    issue: {
+      id: issueId,
+      number,
+      user: { id: issueUserId, login: issueUserLogin },
+    },
     comment: { id: commentId, user: { id: commentUserId } },
     repository: { id: repositoryId },
-    installation: { id: installationId }
-  } = data
+    installation: { id: installationId },
+  } = data;
 
   const issueCommentEvent = {
     action,
@@ -49,7 +55,7 @@ export function assertIssueCommentEvent(data: IGithubIssueCommentEvent): IIssueC
     issueUserLogin,
     commentId,
     commentUserId,
-  }
+  };
 
   const [error] = validate(IssueCommentEventSchema, issueCommentEvent);
   if (error) {
@@ -62,5 +68,5 @@ export function assertIssueCommentEvent(data: IGithubIssueCommentEvent): IIssueC
     );
   }
 
-  return issueCommentEvent
+  return issueCommentEvent;
 }
