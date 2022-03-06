@@ -61,7 +61,7 @@ export class GithubService {
   private static getKarmaConclusion(score: number) {
     if (score > 0) {
       return GithubCheckRunConclusion.Success
-    } else if (score < 100) {
+    } else if (score < -100) {
       return GithubCheckRunConclusion.Failure
     } else {
       return GithubCheckRunConclusion.Neutral
@@ -105,7 +105,7 @@ export class GithubService {
       status: GithubCheckRunStatus.Completed,
       started_at: now.toISOString(),
       completed_at: now.toISOString(),
-      conclusion: GithubCheckRunConclusion.Success,
+      conclusion: GithubService.getKarmaConclusion(score),
       output: {
         title: 'commit-karma',
         summary: `@${userLogin} has ${GithubService.getKarmaPhrase(score)}`,
