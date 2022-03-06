@@ -103,18 +103,38 @@ export class InteractionManager {
         }
       },
       {
-        $group: {
-          _id: "$kind",
-          v: { $sum: 1 },
+        $facet: {
+          kinds: [
+            {
+              $group: {
+                _id: "$kind",
+                v: { $sum: 1 },
+              }
+            },
+            {
+              $project: {
+                _id: 0,
+                k: "$_id",
+                v: "$v"
+              }
+            }
+          ],
+          score: [
+            {
+              $group: {
+                _id: 1,
+                score: { $sum: "$score" }
+              }
+            },
+            {
+              $unwind: "$score"
+            }
+          ]
         }
       },
       {
-        $project: {
-          _id: 0,
-          k: "$_id",
-          v: "$v"
-        }
-      }
+        $unwind: '$score'
+      },
     ]).toArray()
 
     console.log('Partial aggregate:', JSON.stringify(experiment, null, 2))
