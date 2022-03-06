@@ -95,6 +95,30 @@ export class InteractionManager {
   }
 
   public async calculateKarma(userId: number): Promise<Karma> {
+    const experiment = await this.mongo.interactions.aggregate<Karma>([
+      {
+        $match: {
+          state: State.Active,
+          userId
+        }
+      },
+      {
+        $group: {
+          _id: "$kind",
+          v: { $sum: 1 },
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          k: "$_id",
+          v: "$v"
+        }
+      }
+    ]).toArray()
+
+    console.log('Partial aggregate:', JSON.stringify(experiment, null, 2))
+
     const [karma] = await this.mongo.interactions.aggregate<Karma>([
       {
         $match: {
