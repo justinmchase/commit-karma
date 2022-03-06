@@ -95,50 +95,6 @@ export class InteractionManager {
   }
 
   public async calculateKarma(userId: number): Promise<Karma> {
-    const experiment = await this.mongo.interactions.aggregate<Karma>([
-      {
-        $match: {
-          state: State.Active,
-          userId
-        }
-      },
-      {
-        $facet: {
-          kinds: [
-            {
-              $group: {
-                _id: "$kind",
-                v: { $sum: 1 },
-              }
-            },
-            {
-              $project: {
-                _id: 0,
-                k: "$_id",
-                v: "$v"
-              }
-            }
-          ],
-          score: [
-            {
-              $group: {
-                _id: 1,
-                score: { $sum: "$score" }
-              }
-            },
-            {
-              $unwind: "$score"
-            }
-          ]
-        }
-      },
-      {
-        $unwind: '$score'
-      },
-    ]).toArray()
-
-    console.log('Partial aggregate:', JSON.stringify(experiment, null, 2))
-
     const [karma] = await this.mongo.interactions.aggregate<Karma>([
       {
         $match: {
@@ -153,13 +109,6 @@ export class InteractionManager {
               $group: {
                 _id: "$kind",
                 v: { $sum: 1 },
-              }
-            },
-            {
-              $project: {
-                _id: 0,
-                k: "$_id",
-                v: "$v"
               }
             }
           ],
@@ -181,7 +130,17 @@ export class InteractionManager {
       },
       {
         $project: {
-          kinds: { $arrayToObject: "$kinds" },
+          kinds: {
+            $arrayToObject: {
+              $map: {
+                input: "$kinds",
+                in: {
+                  "k": "$$this._id",
+                  "v": "$$this.v"
+                }
+              }
+            }
+          },
           score: "$score.score"
         }
       }
