@@ -1,3 +1,3 @@
 export interface IContext {
-  isHtml?: boolean
+  isHtml?: boolean;
 }

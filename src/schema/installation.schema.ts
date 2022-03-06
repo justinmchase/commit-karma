@@ -1,6 +1,10 @@
 import { Schema, validate } from "../../deps/jtd.ts";
 import { SchemaValidationError } from "../errors/mod.ts";
-import { GithubInstallationActions, GithubAccountType, IGithubInstallationEvent } from "./github.ts";
+import {
+  GithubAccountType,
+  GithubInstallationActions,
+  IGithubInstallationEvent,
+} from "./github.ts";
 
 const InstallationEventSchema = {
   properties: {
@@ -10,30 +14,33 @@ const InstallationEventSchema = {
     type: { type: "string" },
     repositories: {
       elements: {
-        type: "number"
-      }
-    }
-  }
+        type: "number",
+      },
+    },
+  },
 } as Schema;
 
 export interface IInstallationEvent {
-  action: GithubInstallationActions
-  id: number
-  targetId: number
-  type: GithubAccountType
-  repositories: number[]
+  action: GithubInstallationActions;
+  id: number;
+  targetId: number;
+  type: GithubAccountType;
+  repositories: number[];
 }
 
-export function assertInstallationEvent(data: IGithubInstallationEvent): IInstallationEvent {
-  const { action, installation: { id, target_id, target_type }, repositories } = data
+export function assertInstallationEvent(
+  data: IGithubInstallationEvent,
+): IInstallationEvent {
+  const { action, installation: { id, target_id, target_type }, repositories } =
+    data;
 
   const installationAction = {
     action,
     id,
     targetId: target_id,
     type: target_type,
-    repositories: repositories.map(({ id }) => id)
-  }
+    repositories: repositories.map(({ id }) => id),
+  };
 
   const [error] = validate(InstallationEventSchema, installationAction);
   if (error) {
@@ -46,5 +53,5 @@ export function assertInstallationEvent(data: IGithubInstallationEvent): IInstal
     );
   }
 
-  return installationAction as IInstallationEvent
+  return installationAction as IInstallationEvent;
 }

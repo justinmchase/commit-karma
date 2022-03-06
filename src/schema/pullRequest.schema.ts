@@ -1,9 +1,6 @@
 import { Schema, validate } from "../../deps/jtd.ts";
 import { SchemaValidationError } from "../errors/mod.ts";
-import {
-  GithubPullRequestActions,
-  IGithubPullRequestEvent,
-} from "./github.ts";
+import { GithubPullRequestActions, IGithubPullRequestEvent } from "./github.ts";
 
 const PullRequestEventSchema = {
   properties: {
@@ -13,25 +10,27 @@ const PullRequestEventSchema = {
     number: { type: "number" },
     userId: { type: "number" },
     userLogin: { type: "string" },
-  }
+  },
 } as Schema;
 
 export interface IPullRequestEvent {
-  action: GithubPullRequestActions
-  repositoryId: number
-  pullRequestId: number
-  number: number
-  userId: number
-  userLogin: string
+  action: GithubPullRequestActions;
+  repositoryId: number;
+  pullRequestId: number;
+  number: number;
+  userId: number;
+  userLogin: string;
 }
 
-export function assertPullRequestEvent(data: IGithubPullRequestEvent): IPullRequestEvent {
+export function assertPullRequestEvent(
+  data: IGithubPullRequestEvent,
+): IPullRequestEvent {
   const {
     action,
     number,
     pull_request: { id: pullRequestId, user: { id: userId, login: userLogin } },
     repository: { id: repositoryId },
-  } = data
+  } = data;
 
   const pullRequestEvent: IPullRequestEvent = {
     action,
@@ -40,7 +39,7 @@ export function assertPullRequestEvent(data: IGithubPullRequestEvent): IPullRequ
     number,
     userId,
     userLogin,
-  }
+  };
 
   const [error] = validate(PullRequestEventSchema, pullRequestEvent);
   if (error) {
@@ -53,5 +52,5 @@ export function assertPullRequestEvent(data: IGithubPullRequestEvent): IPullRequ
     );
   }
 
-  return pullRequestEvent
+  return pullRequestEvent;
 }
