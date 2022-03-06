@@ -143,11 +143,15 @@ export class WebhookController extends Controller {
     // regardless of action...
     const {
       action,
+      installationId,
       repositoryId,
+      repositoryName,
+      repositoryOwner,
       pullRequestId,
       number,
       userId,
       userLogin,
+      commit,
     } = pullRequest;
 
     const kind = InteractionKind.PullRequest;
@@ -164,6 +168,16 @@ export class WebhookController extends Controller {
       userId: userId,
       userLogin: userLogin,
       score,
+    });
+
+    const karma = await this.interactions.calculateKarma(userId);
+    await this.github.createCheckRun({
+      installationId,
+      userLogin,
+      repositoryName,
+      repositoryOwner,
+      commit,
+      karma,
     });
   }
 
