@@ -13,8 +13,9 @@ export async function start() {
     console.log(`Listening on http://localhost:${e.port}`);
   });
   app.addEventListener("error", (err) => {
-    const { error, timeStamp, message, filename, lineno, context } = err
-    const { accepts, hasBody, headers, ips, method, url } = context?.request || {} as Request
+    const { error, timeStamp, message, filename, lineno, context } = err;
+    const { accepts, hasBody, headers, ips, method, url } = context?.request ||
+      {} as Request;
     console.log(
       `unexpected app error: `,
       {
@@ -28,10 +29,10 @@ export async function start() {
         ips,
         method,
         url,
-        ...error
+        ...error,
       },
-      error
-    )
+      error,
+    );
   });
   await app.listen({ port: 8000 });
 }
