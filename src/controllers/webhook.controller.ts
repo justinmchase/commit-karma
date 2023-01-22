@@ -62,6 +62,7 @@ export class WebhookController extends Controller {
     // verify the sha256 signature
     // X-Hub-Signature-256: sha256=a33f1336e1afdce5b4ad67dc0182b5393cc7631559df93636e0159a45a4bdf69
     this.github.verify(req);
+    console.log(`event ${githubEvent} ${data.action}`);
 
     switch (githubEvent) {
       case GithubEvents.Installation:
