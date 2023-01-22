@@ -184,7 +184,6 @@ ${entries.map(([kind, count]) => renderLine(kind, count)).join("\n")}
 
     const token = await this.token(installationId);
     const json = JSON.stringify(checkRun);
-    console.log(`check-run create ${repositoryOwner} ${repositoryName} ${token}`)
     const res = await fetch(
       `https://api.github.com/repos/${repositoryOwner}/${repositoryName}/check-runs`,
       {
@@ -200,9 +199,6 @@ ${entries.map(([kind, count]) => renderLine(kind, count)).join("\n")}
 
     const { ok, status } = res;
     if (!ok || status != Status.Created) {
-      console.log(res.url)
-      console.log(json)
-      console.log(token)
       throw new UnexpectedStatusError(Status.Created, status);
     }
   }

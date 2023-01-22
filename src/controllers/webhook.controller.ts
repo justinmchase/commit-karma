@@ -346,7 +346,7 @@ export class WebhookController extends Controller {
       action,
       installation: { id: installationId },
       check_suite: { pull_requests },
-      repository: { name: repositoryName, owner: repositoryOwner },
+      repository: { name: repositoryName, owner: { login: repositoryOwner } },
     } = data;
     if (!pull_requests.length) {
       console.log(

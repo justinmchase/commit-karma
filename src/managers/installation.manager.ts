@@ -61,6 +61,7 @@ export class InstallationManager {
         targetId,
       },
       {
+        new: true,
         upsert: true,
         update: {
           $set: {
@@ -94,6 +95,8 @@ export class InstallationManager {
         targetId,
       },
       {
+        new: true,
+        upsert: true,
         update: {
           $set: {
             state: State.Deleted,
