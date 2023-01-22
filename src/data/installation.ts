@@ -1,5 +1,5 @@
+import { GithubAccountType } from "../schema/github.ts";
 import { State } from "./state.ts";
-import { AccountType } from "./account.ts";
 
 export type Installation = {
   _id: string;
@@ -7,6 +7,6 @@ export type Installation = {
   state: State;
   installationId: number;
   targetId: number;
-  targetType: AccountType;
+  targetType: GithubAccountType;
   repositoryId: number;
 };

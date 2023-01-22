@@ -10,16 +10,10 @@ import { ISerializable } from "../util/serializable.ts";
 import { NotImplementedError } from "../errors/mod.ts";
 import { InteractionKind, InteractionScore, State } from "../data/mod.ts";
 import {
-  assertCheckSuiteEvent,
-  assertIssueCommentEvent,
-  assertPullRequestEvent,
-  assertPullRequestReviewCommentEvent,
-  assertPullRequestReviewEvent,
   GithubCheckSuiteActions,
   GithubEvents,
   GithubIssueCommentActions,
   GithubPullRequestReviewCommentActions,
-  ICheckSuiteEvent,
   IGithubCheckSuiteEvent,
   IGithubIssueCommentEvent,
   IGithubPullRequestEvent,
@@ -28,22 +22,28 @@ import {
 } from "../schema/mod.ts";
 import { InstallationManager, InteractionManager } from "../managers/mod.ts";
 import { GithubService } from "../services/mod.ts";
+import { IGithubInstallationEvent, IGithubPullRequest } from "../schema/github.ts";
+import { IGithubInstallationRepositoryEvent } from "../schema/github.ts";
+
+export interface IWebhookControllerOptions {
+  webhookPath?: string; 
+}
 
 export class WebhookController extends Controller {
   constructor(
     private readonly installations: InstallationManager,
     private readonly interactions: InteractionManager,
     private readonly github: GithubService,
+    private readonly webhookPath: string = "/webhook",
   ) {
     super();
   }
 
   public async use(app: Application): Promise<void> {
     const router = new Router();
-
-    // todo: make the actual route a secret route
+    console.log(`webhook listening at path ${this.webhookPath}`)
     router.post(
-      "/webhook",
+      this.webhookPath,
       async (ctx, _next) => await this.handler(ctx.request, ctx.response),
     );
     app.use(router.allowedMethods());
@@ -56,28 +56,31 @@ export class WebhookController extends Controller {
     const body = req.body({ type: "json" });
     const data = await body.value as ISerializable;
 
-    // todo verify the sha256 signature
+    // verify the sha256 signature
     // X-Hub-Signature-256: sha256=a33f1336e1afdce5b4ad67dc0182b5393cc7631559df93636e0159a45a4bdf69
+    this.github.verify(req);
 
     switch (githubEvent) {
       case GithubEvents.Installation:
+        await this.handleInstallation(data as IGithubInstallationEvent);
+        break;
       case GithubEvents.InstallationRepositories:
-        // ignore
+        await this.handleInstallationRepository(data as IGithubInstallationRepositoryEvent);
         break;
       case GithubEvents.IssueComment:
-        await this.handleIssueComment(data);
+        await this.handleIssueComment(data as IGithubIssueCommentEvent);
         break;
       case GithubEvents.PullRequest:
-        await this.handlePullRequest(data);
+        await this.handlePullRequest(data as IGithubPullRequestEvent);
         break;
       case GithubEvents.PullRequestReview:
-        await this.handlePullRequestReview(data);
+        await this.handlePullRequestReview(data as IGithubPullRequestReviewEvent);
         break;
       case GithubEvents.PullRequestReviewComment:
-        await this.handlePullRequestReviewComment(data);
+        await this.handlePullRequestReviewComment(data as IGithubPullRequestReviewCommentEvent);
         break;
       case GithubEvents.CheckSuite:
-        await this.handleCheckSuite(data);
+        await this.handleCheckSuite(data as IGithubCheckSuiteEvent);
         break;
       case GithubEvents.CheckRun:
         console.log(`event check_run ${data.action} skipped`);
@@ -94,19 +97,53 @@ export class WebhookController extends Controller {
     res.headers.set("Content-Type", "application/json");
   }
 
-  private async handleIssueComment(data: ISerializable) {
-    const issueComment = await assertIssueCommentEvent(
-      data as IGithubIssueCommentEvent,
-    );
+  private async handleInstallation(data: IGithubInstallationEvent) {
+    const { installation: { id: installationId, target_id: targetId, target_type: targetType }, repositories } = data as IGithubInstallationEvent
+    for (const { id: repositoryId, full_name: repositoryName } of repositories) {
+      const installation = {
+        installationId,
+        targetId,
+        targetType,
+        repositoryId,
+        repositoryName,
+      }
+      await this.installations.install(installation);
+      console.log(`installed ${repositoryName}`)
+    }
+  }
+
+  private async handleInstallationRepository(data: IGithubInstallationRepositoryEvent) {
+    const { installation: { id: installationId, target_id: targetId, target_type: targetType } } = data;
+    for (const { id: repositoryId, full_name: repositoryName } of data.repositories_added) {
+      const installation = {
+        installationId,
+        targetId,
+        targetType,
+        repositoryId,
+        repositoryName,
+      }
+      await this.installations.install(installation);
+      console.log(`installed ${repositoryName}`)
+    }
+
+    for (const { id: repositoryId, full_name: repositoryName } of data.repositories_removed) {
+      const installation = {
+        installationId,
+        targetId,
+        repositoryId,
+      }
+      await this.installations.uninstall(installation);
+      console.log(`installed ${repositoryName}`)
+    }
+  }
+
+  private async handleIssueComment(data: IGithubIssueCommentEvent) {
     const {
       action,
-      number,
-      repositoryId,
-      commentId,
-      commentUserId,
-      issueUserId,
-      issueUserLogin,
-    } = issueComment;
+      issue: { number, user: { issueUserId } },
+      repository: { id: repositoryId },
+      comment: { id: commentId, user: { id: commentUserId, login: commentUserLogin } },
+    } = data;
 
     if (issueUserId === commentUserId) {
       // A user doesn't get karma points for commenting on their own issues.
@@ -130,29 +167,20 @@ export class WebhookController extends Controller {
       repositoryId,
       number,
       id: commentId,
-      userId: issueUserId,
-      userLogin: issueUserLogin,
+      userId: commentUserId,
+      userLogin: commentUserLogin,
       score,
     });
   }
 
-  private async handlePullRequest(data: ISerializable) {
-    const pullRequest = await assertPullRequestEvent(
-      data as IGithubPullRequestEvent,
-    );
+  private async handlePullRequest(data: IGithubPullRequestEvent) {
     // regardless of action...
     const {
       action,
-      installationId,
-      repositoryId,
-      repositoryName,
-      repositoryOwner,
-      pullRequestId,
-      number,
-      userId,
-      userLogin,
-      commit,
-    } = pullRequest;
+      installation: { id: installationId },
+      repository: { id: repositoryId, full_name: repositoryName, owner: { login: repositoryOwner } },
+      pull_request: { id: pullRequestId, number: number, user: { id: userId, login: userLogin}, head: { sha: commit } },
+    } = data;
 
     const kind = InteractionKind.PullRequest;
     const score = InteractionScore[kind];
@@ -181,21 +209,25 @@ export class WebhookController extends Controller {
     });
   }
 
-  private async handlePullRequestReview(data: ISerializable) {
-    const pullRequest = await assertPullRequestReviewEvent(
-      data as IGithubPullRequestReviewEvent,
-    );
+  private async handlePullRequestReview(data: IGithubPullRequestReviewEvent) {
     // regardless of action...
     const {
       action,
-      repositoryId,
-      number,
-      // pullRequestId,
-      pullRequestUserId,
-      reviewId,
-      reviewUserId,
-      reviewUserLogin,
-    } = pullRequest;
+      repository: { id: repositoryId },
+      pull_request: {
+        number,
+        user: {
+          id: pullRequestUserId
+        }
+      },
+      review: {
+        id: reviewId,
+        user: {
+          id: reviewUserId,
+          login: reviewUserLogin
+        }
+      }
+    } = data;
 
     if (pullRequestUserId === reviewUserId) {
       // A user doesn't get karma points for reviewing their own PRs (should never happen, github prevents it).
@@ -222,21 +254,14 @@ export class WebhookController extends Controller {
     });
   }
 
-  private async handlePullRequestReviewComment(data: ISerializable) {
-    const pullRequest = await assertPullRequestReviewCommentEvent(
-      data as IGithubPullRequestReviewCommentEvent,
-    );
+  private async handlePullRequestReviewComment(data: IGithubPullRequestReviewCommentEvent) {
     // regardless of action...
     const {
       action,
-      repositoryId,
-      number,
-      // pullRequestId,
-      pullRequestUserId,
-      commentId,
-      commentUserId,
-      commentUserLogin,
-    } = pullRequest;
+      repository: { id: repositoryId },
+      pull_request: { number, user: { id: pullRequestUserId} },
+      comment: { id: commentId, user: { id: commentUserId, login: commentUserLogin } }
+    } = data;
 
     if (pullRequestUserId === commentUserId) {
       // A user doesn't get karma points for reviewing their own PRs (should never happen, github prevents it).
@@ -266,55 +291,50 @@ export class WebhookController extends Controller {
     });
   }
 
-  private async handleCheckSuite(data: ISerializable) {
-    const checkSuite = await assertCheckSuiteEvent(
-      data as IGithubCheckSuiteEvent,
-    );
-
+  private async handleCheckSuite(data: IGithubCheckSuiteEvent) {
     const {
       action,
-      pullRequestId,
-      installationId,
-      repositoryName,
-      repositoryOwner,
-      commit,
-    } = checkSuite;
-
-    if (!pullRequestId) {
+      installation: { id: installationId },
+      check_suite: { pull_requests },
+      repository: { full_name: repositoryName, owner: repositoryOwner }
+    } = data;
+    if (!pull_requests.length) {
       console.log(
-        `event check_suite ${action} no_pr ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`,
+        `event check_suite ${action} no_prs ${installationId} ${repositoryOwner}/${repositoryName}`,
       );
       return;
     }
 
-    switch (action) {
-      case GithubCheckSuiteActions.Requested:
-      case GithubCheckSuiteActions.Rerequested:
-        console.log(
-          `event check_suite ${action} check_run_create ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`,
-        );
-        await this.handleCheckSuiteRequested(checkSuite);
-        break;
-      case GithubCheckSuiteActions.Completed:
-      default:
-        console.log(
-          `event check_suite ${action} skipped ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`,
-        );
-        break;
+    for (const pullRequest of pull_requests) {
+      const{ head: { sha: commit } } = pullRequest;
+      switch (action) {
+        case GithubCheckSuiteActions.Requested:
+        case GithubCheckSuiteActions.Rerequested:
+          console.log(
+            `event check_suite ${action} check_run_create ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`,
+          );
+          await this.handleCheckSuiteRequested(data, pullRequest);
+          break;
+        case GithubCheckSuiteActions.Completed:
+        default:
+          console.log(
+            `event check_suite ${action} skipped ${installationId} ${repositoryOwner}/${repositoryName} ${commit}`,
+          );
+          break;
+      }
     }
   }
 
-  private async handleCheckSuiteRequested(checkSuite: ICheckSuiteEvent) {
+  private async handleCheckSuiteRequested(data: IGithubCheckSuiteEvent, pr: IGithubPullRequest) {
+    const { id: pullRequestId, head: { sha: commit } } = pr;
     const {
-      installationId,
-      pullRequestId,
-      repositoryName,
-      repositoryOwner,
-      commit,
-    } = checkSuite;
+      installation: { id: installationId },
+      repository: { full_name: repositoryName, owner: { login: repositoryOwner } }
+    } = data;
+
     const pullRequest = await this.interactions.searchOne({
       kind: InteractionKind.PullRequest,
-      id: pullRequestId!,
+      id: pullRequestId,
     });
     const { userId, userLogin } = pullRequest;
     const karma = await this.interactions.calculateKarma(userId);

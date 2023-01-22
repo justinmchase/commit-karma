@@ -1,3 +1,4 @@
+import { yellow, black } from "../../deps/std.ts";
 import {
   Collection,
   Database,
@@ -19,6 +20,10 @@ export class MongoService {
 
   public static async create(env: Record<string, string>) {
     const connectionString = env["MONGO_CONNECTION_STRING"];
+    if (!connectionString) {
+      console.warn(`[${yellow('WARN')}] ${black('MONGO_CONNECTION_STRING')} not found. Please create a .env file or set up your environment correctly.`);
+    }
+
     const client = new MongoClient();
     const options = await parseConnectionString(connectionString);
     if (connectionString.indexOf("localhost") === -1) {
