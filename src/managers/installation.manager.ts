@@ -47,7 +47,13 @@ export class InstallationManager {
 
   public async install(data: InstallArgs): Promise<Installation> {
     const now = new Date();
-    const { installationId, targetId, targetType, repositoryId,repositoryName } = data;
+    const {
+      installationId,
+      targetId,
+      targetType,
+      repositoryId,
+      repositoryName,
+    } = data;
     const installation = await this.mongo.installations.findAndModify(
       {
         installationId,
@@ -65,8 +71,8 @@ export class InstallationManager {
             repositoryName,
             state: State.Active,
             _ts: now.getTime(),
-          }
-        }
+          },
+        },
       },
     );
 
@@ -77,10 +83,10 @@ export class InstallationManager {
 
     return installation;
   }
-  
+
   public async uninstall(data: UninstallArgs): Promise<Installation> {
     const now = new Date();
-    const { installationId, targetId, repositoryId, } = data;
+    const { installationId, targetId, repositoryId } = data;
     const installation = await this.mongo.installations.findAndModify(
       {
         installationId,
@@ -92,8 +98,8 @@ export class InstallationManager {
           $set: {
             state: State.Deleted,
             _ts: now.getTime(),
-          }
-        }
+          },
+        },
       },
     );
 

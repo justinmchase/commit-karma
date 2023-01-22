@@ -8,7 +8,7 @@ export class SignatureError extends ApplicationError {
       Status.Unauthorized,
       ErrorCode.Signature,
       "invalid signature",
-      details
-    )
+      details,
+    );
   }
 }

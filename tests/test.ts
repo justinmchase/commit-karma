@@ -1,5 +1,5 @@
 import { Status } from "../deps/oak.ts";
-import { assertObjectMatch, readableStreamFromReader } from "../deps/std.ts";
+import { assertObjectMatch } from "../deps/std.ts";
 
 const testCases = [
   { event: "installation", action: "created", status: Status.OK },
@@ -30,7 +30,7 @@ for (
           "X-GitHub-Event": event.replace(/-/g, "_"),
           "Content-Length": `${stat.size}`,
         }),
-        body: await Deno.readTextFile(p)
+        body: await Deno.readTextFile(p),
       });
       await res.text();
       const { ok, status } = res;

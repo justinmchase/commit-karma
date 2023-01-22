@@ -1,4 +1,4 @@
-import { Application, Router, Response, Status } from "../../deps/oak.ts";
+import { Application, Response, Router, Status } from "../../deps/oak.ts";
 import { IContext } from "./context.ts";
 import { Controller } from "./controller.ts";
 

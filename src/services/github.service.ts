@@ -19,7 +19,7 @@ export class GithubService {
     private readonly webhookSecret?: string,
   ) {
   }
-  
+
   public static async create(env: Record<string, string>) {
     // commit-karma appId, should not ever change
     const appId = parseInt(env["APP_ID"] ?? "37724");
@@ -51,10 +51,10 @@ export class GithubService {
         key,
         { name: "HMAC", hash: "SHA-256" },
         false,
-        ["sign", "verify"]
+        ["sign", "verify"],
       );
     } else {
-      console.log(`webhook signature verification is not enabled`)
+      console.log(`webhook signature verification is not enabled`);
     }
   }
 
@@ -70,13 +70,12 @@ export class GithubService {
         this.cryptoKey,
         hexToUint8(sig),
         await req.body({ type: "bytes" }).value,
-      )
+      );
       if (!verified) {
         throw new SignatureError("could not verify signature");
       }
     }
   }
-
 
   private async token(installationId: number) {
     if (!this.appId || !this.privateKey) {

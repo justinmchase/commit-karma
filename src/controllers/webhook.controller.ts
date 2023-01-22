@@ -22,11 +22,14 @@ import {
 } from "../schema/mod.ts";
 import { InstallationManager, InteractionManager } from "../managers/mod.ts";
 import { GithubService } from "../services/mod.ts";
-import { IGithubInstallationEvent, IGithubPullRequest } from "../schema/github.ts";
+import {
+  IGithubInstallationEvent,
+  IGithubPullRequest,
+} from "../schema/github.ts";
 import { IGithubInstallationRepositoryEvent } from "../schema/github.ts";
 
 export interface IWebhookControllerOptions {
-  webhookPath?: string; 
+  webhookPath?: string;
 }
 
 export class WebhookController extends Controller {
@@ -41,7 +44,7 @@ export class WebhookController extends Controller {
 
   public async use(app: Application): Promise<void> {
     const router = new Router();
-    console.log(`webhook listening at path ${this.webhookPath}`)
+    console.log(`webhook listening at path ${this.webhookPath}`);
     router.post(
       this.webhookPath,
       async (ctx, _next) => await this.handler(ctx.request, ctx.response),
@@ -65,7 +68,9 @@ export class WebhookController extends Controller {
         await this.handleInstallation(data as IGithubInstallationEvent);
         break;
       case GithubEvents.InstallationRepositories:
-        await this.handleInstallationRepository(data as IGithubInstallationRepositoryEvent);
+        await this.handleInstallationRepository(
+          data as IGithubInstallationRepositoryEvent,
+        );
         break;
       case GithubEvents.IssueComment:
         await this.handleIssueComment(data as IGithubIssueCommentEvent);
@@ -74,10 +79,14 @@ export class WebhookController extends Controller {
         await this.handlePullRequest(data as IGithubPullRequestEvent);
         break;
       case GithubEvents.PullRequestReview:
-        await this.handlePullRequestReview(data as IGithubPullRequestReviewEvent);
+        await this.handlePullRequestReview(
+          data as IGithubPullRequestReviewEvent,
+        );
         break;
       case GithubEvents.PullRequestReviewComment:
-        await this.handlePullRequestReviewComment(data as IGithubPullRequestReviewCommentEvent);
+        await this.handlePullRequestReviewComment(
+          data as IGithubPullRequestReviewCommentEvent,
+        );
         break;
       case GithubEvents.CheckSuite:
         await this.handleCheckSuite(data as IGithubCheckSuiteEvent);
@@ -98,42 +107,65 @@ export class WebhookController extends Controller {
   }
 
   private async handleInstallation(data: IGithubInstallationEvent) {
-    const { installation: { id: installationId, target_id: targetId, target_type: targetType }, repositories } = data as IGithubInstallationEvent
-    for (const { id: repositoryId, full_name: repositoryName } of repositories) {
+    const {
+      installation: {
+        id: installationId,
+        target_id: targetId,
+        target_type: targetType,
+      },
+      repositories,
+    } = data as IGithubInstallationEvent;
+    for (
+      const { id: repositoryId, full_name: repositoryName } of repositories
+    ) {
       const installation = {
         installationId,
         targetId,
         targetType,
         repositoryId,
         repositoryName,
-      }
+      };
       await this.installations.install(installation);
-      console.log(`installed ${repositoryName}`)
+      console.log(`installed ${repositoryName}`);
     }
   }
 
-  private async handleInstallationRepository(data: IGithubInstallationRepositoryEvent) {
-    const { installation: { id: installationId, target_id: targetId, target_type: targetType } } = data;
-    for (const { id: repositoryId, full_name: repositoryName } of data.repositories_added) {
+  private async handleInstallationRepository(
+    data: IGithubInstallationRepositoryEvent,
+  ) {
+    const {
+      installation: {
+        id: installationId,
+        target_id: targetId,
+        target_type: targetType,
+      },
+    } = data;
+    for (
+      const { id: repositoryId, full_name: repositoryName } of data
+        .repositories_added
+    ) {
       const installation = {
         installationId,
         targetId,
         targetType,
         repositoryId,
         repositoryName,
-      }
+      };
       await this.installations.install(installation);
-      console.log(`installed ${repositoryName}`)
+      console.log(`installed ${repositoryName}`);
     }
 
-    for (const { id: repositoryId, full_name: repositoryName } of data.repositories_removed) {
+    for (
+      const { id: repositoryId, full_name: repositoryName } of data
+        .repositories_removed
+    ) {
       const installation = {
         installationId,
         targetId,
         repositoryId,
-      }
+      };
       await this.installations.uninstall(installation);
-      console.log(`installed ${repositoryName}`)
+      console.log(`installed ${repositoryName}`);
     }
   }
 
@@ -142,7 +174,10 @@ export class WebhookController extends Controller {
       action,
       issue: { number, user: { issueUserId } },
       repository: { id: repositoryId },
-      comment: { id: commentId, user: { id: commentUserId, login: commentUserLogin } },
+      comment: {
+        id: commentId,
+        user: { id: commentUserId, login: commentUserLogin },
+      },
     } = data;
 
     if (issueUserId === commentUserId) {
@@ -178,8 +213,17 @@ export class WebhookController extends Controller {
     const {
       action,
       installation: { id: installationId },
-      repository: { id: repositoryId, full_name: repositoryName, owner: { login: repositoryOwner } },
-      pull_request: { id: pullRequestId, number: number, user: { id: userId, login: userLogin}, head: { sha: commit } },
+      repository: {
+        id: repositoryId,
+        full_name: repositoryName,
+        owner: { login: repositoryOwner },
+      },
+      pull_request: {
+        id: pullRequestId,
+        number: number,
+        user: { id: userId, login: userLogin },
+        head: { sha: commit },
+      },
     } = data;
 
     const kind = InteractionKind.PullRequest;
@@ -217,16 +261,16 @@ export class WebhookController extends Controller {
       pull_request: {
         number,
         user: {
-          id: pullRequestUserId
-        }
+          id: pullRequestUserId,
+        },
       },
       review: {
         id: reviewId,
         user: {
           id: reviewUserId,
-          login: reviewUserLogin
-        }
-      }
+          login: reviewUserLogin,
+        },
+      },
     } = data;
 
     if (pullRequestUserId === reviewUserId) {
@@ -254,13 +298,18 @@ export class WebhookController extends Controller {
     });
   }
 
-  private async handlePullRequestReviewComment(data: IGithubPullRequestReviewCommentEvent) {
+  private async handlePullRequestReviewComment(
+    data: IGithubPullRequestReviewCommentEvent,
+  ) {
     // regardless of action...
     const {
       action,
       repository: { id: repositoryId },
-      pull_request: { number, user: { id: pullRequestUserId} },
-      comment: { id: commentId, user: { id: commentUserId, login: commentUserLogin } }
+      pull_request: { number, user: { id: pullRequestUserId } },
+      comment: {
+        id: commentId,
+        user: { id: commentUserId, login: commentUserLogin },
+      },
     } = data;
 
     if (pullRequestUserId === commentUserId) {
@@ -296,7 +345,7 @@ export class WebhookController extends Controller {
       action,
       installation: { id: installationId },
       check_suite: { pull_requests },
-      repository: { full_name: repositoryName, owner: repositoryOwner }
+      repository: { full_name: repositoryName, owner: repositoryOwner },
     } = data;
     if (!pull_requests.length) {
       console.log(
@@ -306,7 +355,7 @@ export class WebhookController extends Controller {
     }
 
     for (const pullRequest of pull_requests) {
-      const{ head: { sha: commit } } = pullRequest;
+      const { head: { sha: commit } } = pullRequest;
       switch (action) {
         case GithubCheckSuiteActions.Requested:
         case GithubCheckSuiteActions.Rerequested:
@@ -325,11 +374,17 @@ export class WebhookController extends Controller {
     }
   }
 
-  private async handleCheckSuiteRequested(data: IGithubCheckSuiteEvent, pr: IGithubPullRequest) {
+  private async handleCheckSuiteRequested(
+    data: IGithubCheckSuiteEvent,
+    pr: IGithubPullRequest,
+  ) {
     const { id: pullRequestId, head: { sha: commit } } = pr;
     const {
       installation: { id: installationId },
-      repository: { full_name: repositoryName, owner: { login: repositoryOwner } }
+      repository: {
+        full_name: repositoryName,
+        owner: { login: repositoryOwner },
+      },
     } = data;
 
     const pullRequest = await this.interactions.searchOne({

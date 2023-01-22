@@ -1,7 +1,4 @@
-import {
-  GithubAccountType,
-  GithubInstallationActions,
-} from "./github.ts";
+import { GithubAccountType, GithubInstallationActions } from "./github.ts";
 
 export interface IInstallationEvent {
   action: GithubInstallationActions;

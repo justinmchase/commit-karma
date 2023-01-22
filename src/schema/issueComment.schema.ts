@@ -1,6 +1,4 @@
-import {
-  GithubIssueCommentActions,
-} from "./github.ts";
+import { GithubIssueCommentActions } from "./github.ts";
 
 export interface IIssueCommentEvent {
   action: GithubIssueCommentActions;

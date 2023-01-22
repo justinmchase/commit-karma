@@ -16,7 +16,7 @@ export async function initControllers(
 ) {
   const { env, github } = services;
   const { installations, interactions } = managers;
-  const webhookPath = env['GITHUB_WEBHOOK_PATH'];
+  const webhookPath = env["GITHUB_WEBHOOK_PATH"];
   const error = new ErrorController();
   const health = new HealthController();
   const log = new LogController();

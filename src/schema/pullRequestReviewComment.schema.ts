@@ -1,6 +1,4 @@
-import {
-  GithubPullRequestReviewCommentActions,
-} from "./github.ts";
+import { GithubPullRequestReviewCommentActions } from "./github.ts";
 
 export interface IPullRequestReviewCommentEvent {
   action: GithubPullRequestReviewCommentActions;
