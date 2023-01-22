@@ -83,7 +83,7 @@ export class GithubService {
     }
 
     if (!this.privateKey) {
-      return undefined;
+      throw new Error(`invalid privateKey`)
     }
 
     // todo: cache the token for a minute at least to reduce calls to this api
@@ -92,6 +92,9 @@ export class GithubService {
       jwt,
       `${installationId}`,
     );
+    if (!token) {
+      throw new Error(`inavlid token ${installationId} ${this.appId} ${this.privateKey}`)
+    }
     return token;
   }
 
