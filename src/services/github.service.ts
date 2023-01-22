@@ -177,6 +177,7 @@ ${entries.map(([kind, count]) => renderLine(kind, count)).join("\n")}
 
     const token = await this.token(installationId);
     const json = JSON.stringify(checkRun);
+    console.log(`check-run create ${repositoryOwner} ${repositoryName} ${!!token}`)
     const res = await fetch(
       `https://api.github.com/repos/${repositoryOwner}/${repositoryName}/check-runs`,
       {
