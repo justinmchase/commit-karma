@@ -44,9 +44,9 @@ export class WebhookController extends Controller {
 
   public async use(app: Application): Promise<void> {
     const router = new Router();
-    console.log(`webhook listening at path ${this.webhookPath}`);
+    console.log(`webhook listening at path /${this.webhookPath}`);
     router.post(
-      this.webhookPath,
+      `/${this.webhookPath}`,
       async (ctx, _next) => await this.handler(ctx.request, ctx.response),
     );
     app.use(router.allowedMethods());
