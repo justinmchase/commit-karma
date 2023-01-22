@@ -4,4 +4,5 @@ export enum ErrorCode {
   NotFound = "E_NOT_FOUND",
   NotImplemented = "E_NOT_IMPLEMENTED",
   UnexpectedStatus = "E_UNEXPECTED_STATUS",
+  Signature = "E_SIGNATURE",
 }

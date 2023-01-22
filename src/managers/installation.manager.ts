@@ -1,12 +1,20 @@
 import { ObjectId } from "../../deps/mongo.ts";
 import { NotFoundError } from "../errors/mod.ts";
 import { MongoService } from "../services/mongo.service.ts";
-import { AccountType, Installation, State } from "../data/mod.ts";
+import { Installation, State } from "../data/mod.ts";
+import { GithubAccountType } from "../schema/github.ts";
 
-type CreateInstallationInput = {
+type InstallArgs = {
   installationId: number;
   targetId: number;
-  targetType: AccountType;
+  targetType: GithubAccountType;
+  repositoryId: number;
+  repositoryName: string;
+};
+
+type UninstallArgs = {
+  installationId: number;
+  targetId: number;
   repositoryId: number;
 };
 
@@ -14,26 +22,6 @@ export class InstallationManager {
   constructor(
     private readonly mongo: MongoService,
   ) {}
-
-  // createInstallation(
-  //   # 'Installation' input values
-  //   data: InstallationInput!
-  // ): Installation!
-
-  // # Update an existing document in the collection of 'Installation'
-  // updateInstallation(
-  //   # The 'Installation' document's ID
-  //   id: ID!
-
-  //   # 'Installation' input values
-  //   data: InstallationInput!
-  // ): Installation
-
-  // installationId: Int!
-  // targetId: Int!
-  // targetType: AccountType!
-  // repositoryId: Int!
-  // state: State!
 
   public async byRepositoryId(
     repositoryId: number,
@@ -57,25 +45,73 @@ export class InstallationManager {
     return installation;
   }
 
-  public async create(data: CreateInstallationInput): Promise<Installation> {
+  public async install(data: InstallArgs): Promise<Installation> {
     const now = new Date();
-    const { installationId, repositoryId, targetId, targetType } = data;
-    const createdId = await this.mongo.installations.insertOne(
+    const {
+      installationId,
+      targetId,
+      targetType,
+      repositoryId,
+      repositoryName,
+    } = data;
+    const installation = await this.mongo.installations.findAndModify(
       {
         installationId,
         repositoryId,
         targetId,
-        targetType,
-        state: State.Active,
-        _ts: now.getTime(),
+      },
+      {
+        new: true,
+        upsert: true,
+        update: {
+          $set: {
+            installationId,
+            targetId,
+            targetType,
+            repositoryId,
+            repositoryName,
+            state: State.Active,
+            _ts: now.getTime(),
+          },
+        },
       },
     );
 
-    if (!createdId) {
-      throw new Error("failed to create installation");
+    if (!installation) {
+      // todo: make a better error
+      throw new Error("failed to install");
     }
 
-    return await this.get(createdId);
+    return installation;
+  }
+
+  public async uninstall(data: UninstallArgs): Promise<Installation> {
+    const now = new Date();
+    const { installationId, targetId, repositoryId } = data;
+    const installation = await this.mongo.installations.findAndModify(
+      {
+        installationId,
+        repositoryId,
+        targetId,
+      },
+      {
+        new: true,
+        upsert: true,
+        update: {
+          $set: {
+            state: State.Deleted,
+            _ts: now.getTime(),
+          },
+        },
+      },
+    );
+
+    if (!installation) {
+      // todo: make a better error
+      throw new Error("failed to uninstall");
+    }
+
+    return installation;
   }
 
   public async setState(

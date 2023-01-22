@@ -1,5 +1,5 @@
 import { Status } from "../deps/oak.ts";
-import { assertObjectMatch, readableStreamFromReader } from "../deps/std.ts";
+import { assertObjectMatch } from "../deps/std.ts";
 
 const testCases = [
   { event: "installation", action: "created", status: Status.OK },
@@ -23,7 +23,6 @@ for (
       const name = [event, action, number].filter((p) => p != null).join("-");
       const p = `./tests/${name}.json`;
       const stat = await Deno.stat(p);
-      const file = await Deno.open(p);
       const res = await fetch("http://localhost:8000/webhook", {
         method: "POST",
         headers: new Headers({
@@ -31,7 +30,7 @@ for (
           "X-GitHub-Event": event.replace(/-/g, "_"),
           "Content-Length": `${stat.size}`,
         }),
-        body: readableStreamFromReader(file),
+        body: await Deno.readTextFile(p),
       });
       await res.text();
       const { ok, status } = res;

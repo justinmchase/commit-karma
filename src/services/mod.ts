@@ -5,6 +5,7 @@ import { MongoService } from "./mongo.service.ts";
 export { GithubService, MongoService };
 
 export type Services = {
+  env: Record<string, string>;
   mongo: MongoService;
   github: GithubService;
 };
@@ -17,6 +18,7 @@ export async function initServices() {
   const mongo = await MongoService.create(env);
   const github = await GithubService.create(env);
   return {
+    env,
     mongo,
     github,
   };

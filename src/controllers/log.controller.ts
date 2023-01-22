@@ -1,8 +1,9 @@
 import { Application, Context } from "../../deps/oak.ts";
+import { IContext } from "./context.ts";
 import { Controller } from "./controller.ts";
 
 export class LogController extends Controller {
-  public async use(app: Application): Promise<void> {
+  public async use(app: Application<IContext>): Promise<void> {
     app.use(this.handler.bind(this));
     await undefined;
   }
