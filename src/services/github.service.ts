@@ -193,6 +193,9 @@ ${entries.map(([kind, count]) => renderLine(kind, count)).join("\n")}
 
     const { ok, status } = res;
     if (!ok || status != Status.Created) {
+      console.log(res.url)
+      console.log(res.body)
+      console.log(res.headers)
       throw new UnexpectedStatusError(Status.Created, status);
     }
   }
