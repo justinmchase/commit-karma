@@ -117,7 +117,7 @@ export class WebhookController extends Controller {
       repositories,
     } = data as IGithubInstallationEvent;
     for (
-      const { id: repositoryId, full_name: repositoryName } of repositories
+      const { id: repositoryId, name: repositoryName } of repositories
     ) {
       const installation = {
         installationId,
@@ -142,7 +142,7 @@ export class WebhookController extends Controller {
       },
     } = data;
     for (
-      const { id: repositoryId, full_name: repositoryName } of data
+      const { id: repositoryId, name: repositoryName } of data
         .repositories_added
     ) {
       const installation = {
@@ -157,7 +157,7 @@ export class WebhookController extends Controller {
     }
 
     for (
-      const { id: repositoryId, full_name: repositoryName } of data
+      const { id: repositoryId, name: repositoryName } of data
         .repositories_removed
     ) {
       const installation = {
@@ -216,7 +216,7 @@ export class WebhookController extends Controller {
       installation: { id: installationId },
       repository: {
         id: repositoryId,
-        full_name: repositoryName,
+        name: repositoryName,
         owner: { login: repositoryOwner },
       },
       pull_request: {
@@ -346,7 +346,7 @@ export class WebhookController extends Controller {
       action,
       installation: { id: installationId },
       check_suite: { pull_requests },
-      repository: { full_name: repositoryName, owner: repositoryOwner },
+      repository: { name: repositoryName, owner: repositoryOwner },
     } = data;
     if (!pull_requests.length) {
       console.log(
@@ -383,7 +383,7 @@ export class WebhookController extends Controller {
     const {
       installation: { id: installationId },
       repository: {
-        full_name: repositoryName,
+        name: repositoryName,
         owner: { login: repositoryOwner },
       },
     } = data;
