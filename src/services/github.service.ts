@@ -22,7 +22,7 @@ export class GithubService {
 
   public static async create(env: Record<string, string>) {
     // commit-karma appId, should not ever change
-    const appId = parseInt(env["APP_ID"] ?? "37724");
+    const appId = parseInt(env["APP_ID"]) || 37724;
 
     // cat commit-karma.pem | base64
     const privateKey = env["GITHUB_PRIVATE_KEY"];
@@ -78,7 +78,11 @@ export class GithubService {
   }
 
   private async token(installationId: number) {
-    if (!this.appId || !this.privateKey) {
+    if (!this.appId) {
+      throw new Error(`invalid appId ${this.appId}`);
+    }
+
+    if (!this.privateKey) {
       return undefined;
     }
 
