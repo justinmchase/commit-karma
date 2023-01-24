@@ -11,7 +11,14 @@ export async function start() {
   await initControllers(app, managers, services);
 
   app.addEventListener("listen", (e) => {
+    const { analytics } = services;
     console.log(`Listening on http://localhost:${e.port}`);
+
+    analytics.send({
+      event: 'listen',
+      action: 'server_start',
+      data: { port: e.port }
+    });
   });
   app.addEventListener("error", (err) => {
     const { error, timeStamp, message, filename, lineno, context } = err;

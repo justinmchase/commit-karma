@@ -5,3 +5,4 @@ export * from "./notfound.error.ts";
 export * from "./unexpectedStatus.error.ts";
 export * from "./notimplemented.error.ts";
 export * from "./signature.error.ts";
+export * from "./config.error.ts";

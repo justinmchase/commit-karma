@@ -23,6 +23,21 @@ export class InstallationManager {
     private readonly mongo: MongoService,
   ) {}
 
+  public async init() {
+    await this.mongo.installations.createIndexes({
+      indexes: [
+        {
+          name: "installationId_repositoryId_targetId",
+          key: {
+            installationId: -1,
+            repositoryId: -1,
+            targetId: -1,
+          }
+        }
+      ]
+    })
+  }
+
   public async byRepositoryId(
     repositoryId: number,
   ): Promise<Installation | undefined> {

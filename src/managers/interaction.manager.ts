@@ -23,6 +23,30 @@ export class InteractionManager {
   constructor(
     private readonly mongo: MongoService,
   ) {}
+  
+  public async init() {
+    await this.mongo.interactions.createIndexes({
+      indexes: [
+        {
+          name: "kind_repository_number_id_user",
+          key: {
+            kind: -1,
+            repositoryId: -1,
+            number: -1,
+            id: -1,
+            userId: -1,
+          }
+        },
+        {
+          name: "state_user",
+          key: {
+            state: -1,
+            userId: -1,
+          }
+        }
+      ]
+    })
+  }
 
   public async findOne(
     _id: string | ObjectId,

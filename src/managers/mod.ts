@@ -9,10 +9,14 @@ export type Managers = {
   interactions: InteractionManager;
 };
 
-export function initManagers(services: Services) {
+export async function initManagers(services: Services) {
   const { mongo } = services;
   const installations = new InstallationManager(mongo);
   const interactions = new InteractionManager(mongo);
+
+  await installations.init();
+  await interactions.init();
+
   return {
     installations,
     interactions,

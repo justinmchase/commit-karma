@@ -14,7 +14,7 @@ export async function initControllers(
   managers: Managers,
   services: Services,
 ) {
-  const { env, github } = services;
+  const { env, github, analytics } = services;
   const { installations, interactions } = managers;
   const webhookPath = env["GITHUB_WEBHOOK_PATH"];
   const error = new ErrorController();
@@ -25,11 +25,10 @@ export async function initControllers(
     installations,
     interactions,
     github,
+    analytics,
     webhookPath,
   );
   const notfound = new NotFoundController();
-
-  await github.init();
 
   await error.use(app);
   await health.use(app);

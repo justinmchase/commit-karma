@@ -9,29 +9,32 @@ import { InteractionKind, InteractionScore } from "../data/interaction.ts";
 import { Karma } from "../managers/interaction.manager.ts";
 import { UnexpectedStatusError } from "../errors/mod.ts";
 import { SignatureError } from "../errors/signature.error.ts";
-import { hexToUint8 } from "../util/hex.ts";
+import { hmacCreateKey, hmacVerify } from "../util/hmac.ts";
+import { readInt, readRequiredString } from "../util/config.ts";
 
 export class GithubService {
-  private cryptoKey?: CryptoKey;
   constructor(
     private readonly appId: number,
     private readonly privateKey: string,
-    private readonly webhookSecret?: string,
+    private readonly cryptoKey: CryptoKey,
   ) {
   }
 
   public static async create(env: Record<string, string>) {
     // commit-karma appId, should not ever change
-    const appId = parseInt(env["APP_ID"]) || 37724;
+    const appId = readInt(env, "APP_ID", 37724);
 
     // cat commit-karma.pem | base64
-    const privateKey = env["GITHUB_PRIVATE_KEY"];
+    const privateKey = readRequiredString(env, "GITHUB_PRIVATE_KEY");
 
     // This can be any guid, it needs to be configured here as well as in the github app
-    const webhookSecret = env["GITHUB_WEBHOOK_SECRET"];
+    const webhookSecret = readRequiredString(env, "GITHUB_WEBHOOK_SECRET");
+    const key = await hmacCreateKey(webhookSecret);
 
     if (!Deno.permissions) {
+      // For some reason this was not allowed in Deno.Deploy.
       // todo: remove this hack once the following issue is resolved
+      // or Deno deploy is updated to allow permissions checks.
       // https://github.com/laughedelic/github_app_auth/issues/6
       (Deno as unknown as Record<string, unknown>)["permissions"] = {
         query: async () => await true,
@@ -39,23 +42,7 @@ export class GithubService {
       console.log("Deno.permissions patched");
     }
 
-    return await new GithubService(appId, privateKey, webhookSecret);
-  }
-
-  public async init() {
-    if (this.webhookSecret) {
-      console.log("webhook signature verification is enabled");
-      const key = new TextEncoder().encode(this.webhookSecret);
-      this.cryptoKey = await crypto.subtle.importKey(
-        "raw",
-        key,
-        { name: "HMAC", hash: "SHA-256" },
-        false,
-        ["sign", "verify"],
-      );
-    } else {
-      console.log(`webhook signature verification is not enabled`);
-    }
+    return await new GithubService(appId, privateKey, key);
   }
 
   public async verify(req: Request) {
@@ -65,10 +52,9 @@ export class GithubService {
         throw new SignatureError("invalid signature");
       }
       const [, sig] = signature.split("=");
-      const verified = await crypto.subtle.verify(
-        { name: "HMAC" },
+      const verified = await hmacVerify(
         this.cryptoKey,
-        hexToUint8(sig),
+        sig,
         await req.body({ type: "bytes" }).value,
       );
       if (!verified) {

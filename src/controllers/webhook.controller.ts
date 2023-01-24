@@ -27,6 +27,7 @@ import {
   IGithubPullRequest,
 } from "../schema/github.ts";
 import { IGithubInstallationRepositoryEvent } from "../schema/github.ts";
+import { AnalyticsService } from "../services/analytics.service.ts";
 
 export interface IWebhookControllerOptions {
   webhookPath?: string;
@@ -37,6 +38,7 @@ export class WebhookController extends Controller {
     private readonly installations: InstallationManager,
     private readonly interactions: InteractionManager,
     private readonly github: GithubService,
+    private readonly analytics: AnalyticsService,
     private readonly webhookPath: string = "/webhook",
   ) {
     super();
@@ -109,6 +111,7 @@ export class WebhookController extends Controller {
 
   private async handleInstallation(data: IGithubInstallationEvent) {
     const {
+      action,
       installation: {
         id: installationId,
         target_id: targetId,
@@ -128,6 +131,11 @@ export class WebhookController extends Controller {
       };
       await this.installations.install(installation);
       console.log(`installed ${repositoryName}`);
+      this.analytics.send({
+        event: GithubEvents.Installation,
+        action,
+        data: installation
+      })
     }
   }
 
@@ -135,6 +143,7 @@ export class WebhookController extends Controller {
     data: IGithubInstallationRepositoryEvent,
   ) {
     const {
+      action,
       installation: {
         id: installationId,
         target_id: targetId,
@@ -154,6 +163,11 @@ export class WebhookController extends Controller {
       };
       await this.installations.install(installation);
       console.log(`installed ${repositoryName}`);
+      this.analytics.send({
+        event: GithubEvents.InstallationRepositories,
+        action,
+        data: installation
+      })
     }
 
     for (
@@ -167,6 +181,11 @@ export class WebhookController extends Controller {
       };
       await this.installations.uninstall(installation);
       console.log(`installed ${repositoryName}`);
+      this.analytics.send({
+        event: GithubEvents.InstallationRepositories,
+        action,
+        data: installation
+      })
     }
   }
 
@@ -197,7 +216,7 @@ export class WebhookController extends Controller {
     console.log(
       `event issue_comment ${action} ${repositoryId} ${number} ${commentId} ${commentUserId} ${score}`,
     );
-    await this.interactions.upsert({
+    const interaction = {
       kind,
       state,
       repositoryId,
@@ -206,7 +225,13 @@ export class WebhookController extends Controller {
       userId: commentUserId,
       userLogin: commentUserLogin,
       score,
-    });
+    };
+    await this.interactions.upsert(interaction);
+    this.analytics.send({
+      event: GithubEvents.IssueComment,
+      action,
+      data: interaction
+    })
   }
 
   private async handlePullRequest(data: IGithubPullRequestEvent) {
@@ -232,7 +257,7 @@ export class WebhookController extends Controller {
     console.log(
       `event pull_request ${action} ${repositoryId} ${number} ${pullRequestId} ${userId} ${score}`,
     );
-    await this.interactions.upsert({
+    const interaction = {
       kind,
       state: State.Active,
       repositoryId,
@@ -241,8 +266,8 @@ export class WebhookController extends Controller {
       userId: userId,
       userLogin: userLogin,
       score,
-    });
-
+    }
+    await this.interactions.upsert(interaction);
     const karma = await this.interactions.calculateKarma(userId);
     await this.github.createCheckRun({
       installationId,
@@ -252,6 +277,11 @@ export class WebhookController extends Controller {
       commit,
       karma,
     });
+    this.analytics.send({
+      event: GithubEvents.PullRequest,
+      action,
+      data: interaction
+    })
   }
 
   private async handlePullRequestReview(data: IGithubPullRequestReviewEvent) {
@@ -287,7 +317,7 @@ export class WebhookController extends Controller {
     console.log(
       `event pull_request ${action} ${repositoryId} ${number} ${reviewId} ${reviewUserId} ${score}`,
     );
-    await this.interactions.upsert({
+    const interaction = {
       kind,
       state: State.Active,
       repositoryId,
@@ -296,7 +326,13 @@ export class WebhookController extends Controller {
       userId: reviewUserId,
       userLogin: reviewUserLogin,
       score,
-    });
+    };
+    await this.interactions.upsert(interaction);
+    this.analytics.send({
+      event: GithubEvents.PullRequestReview,
+      action,
+      data: interaction
+    })
   }
 
   private async handlePullRequestReviewComment(
@@ -329,7 +365,7 @@ export class WebhookController extends Controller {
     console.log(
       `event pull_request ${action} ${repositoryId} ${number} ${commentId} ${commentUserId} ${score}`,
     );
-    await this.interactions.upsert({
+    const interaction = {
       kind,
       state,
       repositoryId,
@@ -338,6 +374,12 @@ export class WebhookController extends Controller {
       userId: commentUserId,
       userLogin: commentUserLogin,
       score,
+    };
+    await this.interactions.upsert(interaction);
+    this.analytics.send({
+      event: GithubEvents.PullRequestReviewComment,
+      action,
+      data: interaction
     });
   }
 
@@ -381,6 +423,7 @@ export class WebhookController extends Controller {
   ) {
     const { id: pullRequestId, head: { sha: commit } } = pr;
     const {
+      action,
       installation: { id: installationId },
       repository: {
         name: repositoryName,
@@ -394,13 +437,19 @@ export class WebhookController extends Controller {
     });
     const { userId, userLogin } = pullRequest;
     const karma = await this.interactions.calculateKarma(userId);
-    await this.github.createCheckRun({
+    const checkRun = {
       installationId,
       userLogin,
       repositoryName,
       repositoryOwner,
       commit,
       karma,
+    };
+    await this.github.createCheckRun(checkRun);
+    this.analytics.send({
+      event: GithubEvents.CheckSuite,
+      action,
+      data: checkRun
     });
   }
 }
