@@ -3,7 +3,7 @@ import { AnalyticsService } from "./analytics.service.ts";
 import { GithubService } from "./github.service.ts";
 import { MongoService } from "./mongo.service.ts";
 
-export { GithubService, MongoService };
+export { GithubService, MongoService, AnalyticsService };
 
 export type Services = {
   env: Record<string, string>;
