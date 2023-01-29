@@ -30,7 +30,7 @@ export class GithubService {
 
     // This can be any guid, it needs to be configured here as well as in the github app and in the marketplace
     const webhookSecret = readRequiredString(env, "GITHUB_WEBHOOK_SECRET");
-    const encodedWebhookSecret = base64Encode(webhookSecret)
+    const encodedWebhookSecret = base64Encode(webhookSecret);
     const key = await hmacCreateKey(encodedWebhookSecret);
 
     if (!Deno.permissions) {
@@ -71,7 +71,7 @@ export class GithubService {
     }
 
     if (!this.privateKey) {
-      throw new Error(`invalid privateKey`)
+      throw new Error(`invalid privateKey`);
     }
 
     // todo: cache the token for a minute at least to reduce calls to this api
@@ -81,7 +81,9 @@ export class GithubService {
       `${installationId}`,
     );
     if (!token) {
-      throw new Error(`inavlid token ${installationId} ${this.appId} ${this.privateKey}`)
+      throw new Error(
+        `inavlid token ${installationId} ${this.appId} ${this.privateKey}`,
+      );
     }
     return token;
   }

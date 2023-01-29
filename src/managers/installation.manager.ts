@@ -32,10 +32,10 @@ export class InstallationManager {
             installationId: -1,
             repositoryId: -1,
             targetId: -1,
-          }
-        }
-      ]
-    })
+          },
+        },
+      ],
+    });
   }
 
   public async byRepositoryId(

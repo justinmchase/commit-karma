@@ -17,7 +17,7 @@ export async function initControllers(
 ) {
   const { env, github, analytics } = services;
   const { installations, interactions } = managers;
-  
+
   // This can be any guid, it needs to be configured here as well as in the github app and in the marketplace
   const webhookPath = readString(env, "GITHUB_WEBHOOK_PATH", "/webhook");
 

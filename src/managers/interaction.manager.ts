@@ -23,7 +23,7 @@ export class InteractionManager {
   constructor(
     private readonly mongo: MongoService,
   ) {}
-  
+
   public async init() {
     await this.mongo.interactions.createIndexes({
       indexes: [
@@ -35,17 +35,17 @@ export class InteractionManager {
             number: -1,
             id: -1,
             userId: -1,
-          }
+          },
         },
         {
           name: "state_user",
           key: {
             state: -1,
             userId: -1,
-          }
-        }
-      ]
-    })
+          },
+        },
+      ],
+    });
   }
 
   public async findOne(

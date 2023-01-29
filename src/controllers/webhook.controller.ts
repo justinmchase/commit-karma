@@ -69,7 +69,9 @@ export class WebhookController extends Controller {
 
     switch (githubEvent) {
       case GithubEvents.MarketplacePurchase:
-        await this.handleMarketplacePurchase(data as IGithubMarketplacePurchaseEvent);
+        await this.handleMarketplacePurchase(
+          data as IGithubMarketplacePurchaseEvent,
+        );
         break;
       case GithubEvents.Installation:
         await this.handleInstallation(data as IGithubInstallationEvent);
@@ -113,15 +115,17 @@ export class WebhookController extends Controller {
     res.headers.set("Content-Type", "application/json");
   }
 
-  private async handleMarketplacePurchase(data: IGithubMarketplacePurchaseEvent) {
+  private async handleMarketplacePurchase(
+    data: IGithubMarketplacePurchaseEvent,
+  ) {
     // https://docs.github.com/en/developers/github-marketplace/using-the-github-marketplace-api-in-your-app/webhook-events-for-the-github-marketplace-api
     const { action } = data;
-    console.log(`marketplace purchased ${data}`)
+    console.log(`marketplace purchased ${data}`);
     await this.analytics.send({
       event: GithubEvents.MarketplacePurchase,
       action,
-      data
-    })
+      data,
+    });
   }
 
   private async handleInstallation(data: IGithubInstallationEvent) {
@@ -149,8 +153,8 @@ export class WebhookController extends Controller {
       this.analytics.send({
         event: GithubEvents.Installation,
         action,
-        data: installation
-      })
+        data: installation,
+      });
     }
   }
 
@@ -181,8 +185,8 @@ export class WebhookController extends Controller {
       this.analytics.send({
         event: GithubEvents.InstallationRepositories,
         action,
-        data: installation
-      })
+        data: installation,
+      });
     }
 
     for (
@@ -199,8 +203,8 @@ export class WebhookController extends Controller {
       this.analytics.send({
         event: GithubEvents.InstallationRepositories,
         action,
-        data: installation
-      })
+        data: installation,
+      });
     }
   }
 
@@ -245,8 +249,8 @@ export class WebhookController extends Controller {
     this.analytics.send({
       event: GithubEvents.IssueComment,
       action,
-      data: interaction
-    })
+      data: interaction,
+    });
   }
 
   private async handlePullRequest(data: IGithubPullRequestEvent) {
@@ -281,7 +285,7 @@ export class WebhookController extends Controller {
       userId: userId,
       userLogin: userLogin,
       score,
-    }
+    };
     await this.interactions.upsert(interaction);
     const karma = await this.interactions.calculateKarma(userId);
     await this.github.createCheckRun({
@@ -295,8 +299,8 @@ export class WebhookController extends Controller {
     this.analytics.send({
       event: GithubEvents.PullRequest,
       action,
-      data: interaction
-    })
+      data: interaction,
+    });
   }
 
   private async handlePullRequestReview(data: IGithubPullRequestReviewEvent) {
@@ -346,8 +350,8 @@ export class WebhookController extends Controller {
     this.analytics.send({
       event: GithubEvents.PullRequestReview,
       action,
-      data: interaction
-    })
+      data: interaction,
+    });
   }
 
   private async handlePullRequestReviewComment(
@@ -394,7 +398,7 @@ export class WebhookController extends Controller {
     this.analytics.send({
       event: GithubEvents.PullRequestReviewComment,
       action,
-      data: interaction
+      data: interaction,
     });
   }
 
@@ -464,7 +468,7 @@ export class WebhookController extends Controller {
     this.analytics.send({
       event: GithubEvents.CheckSuite,
       action,
-      data: checkRun
+      data: checkRun,
     });
   }
 }

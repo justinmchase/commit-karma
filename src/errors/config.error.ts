@@ -10,7 +10,7 @@ export class ConfigError extends ApplicationError {
     super(
       Status.BadRequest,
       ErrorCode.Configuration,
-      `invalid configuration. key ${key} ${reason}`
-    )
+      `invalid configuration. key ${key} ${reason}`,
+    );
   }
 }

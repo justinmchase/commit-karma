@@ -3,7 +3,7 @@ import { AnalyticsService } from "./analytics.service.ts";
 import { GithubService } from "./github.service.ts";
 import { MongoService } from "./mongo.service.ts";
 
-export { GithubService, MongoService, AnalyticsService };
+export { AnalyticsService, GithubService, MongoService };
 
 export type Services = {
   env: Record<string, string>;
@@ -24,6 +24,6 @@ export async function initServices() {
     env,
     mongo,
     github,
-    analytics
+    analytics,
   };
 }

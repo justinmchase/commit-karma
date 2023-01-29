@@ -5,7 +5,7 @@ import { AnalyticsService } from "../services/mod.ts";
 
 export class ErrorController extends Controller {
   constructor(private readonly analytics: AnalyticsService) {
-    super()
+    super();
   }
 
   public async use(app: Application): Promise<void> {
@@ -17,7 +17,7 @@ export class ErrorController extends Controller {
     try {
       await next();
     } catch (err) {
-      const { name, message, stack, ...rest } = err
+      const { name, message, stack, ...rest } = err;
       const status = err.status ?? Status.InternalServerError;
       ctx.response.status = status;
       ctx.response.body = { ok: false, message };
@@ -33,11 +33,10 @@ export class ErrorController extends Controller {
             message,
             stack,
             status,
-            ...rest
-          }
-        }
-      })
-      
+            ...rest,
+          },
+        },
+      });
     }
   }
 }

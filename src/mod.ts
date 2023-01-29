@@ -15,9 +15,9 @@ export async function start() {
     console.log(`Listening on http://localhost:${e.port}`);
 
     analytics.send({
-      event: 'listen',
-      action: 'server_start',
-      data: { port: e.port }
+      event: "listen",
+      action: "server_start",
+      data: { port: e.port },
     });
   });
   app.addEventListener("error", (err) => {

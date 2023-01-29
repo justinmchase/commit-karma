@@ -1,5 +1,5 @@
 import { hexToUint8 } from "./hex.ts";
-import { base64Decode } from "../../deps/std.ts"
+import { base64Decode } from "../../deps/std.ts";
 
 /*
  * Creates an hmac CryptoKey for signing and verifycation of hmac hashes.
@@ -22,16 +22,20 @@ export async function hmacSign(key: CryptoKey, value: string) {
   return await crypto.subtle.sign(
     { name: "HMAC" },
     key,
-    bytes
+    bytes,
   );
 }
 
-export async function hmacVerify(key: CryptoKey, hex: string, data: BufferSource) {
+export async function hmacVerify(
+  key: CryptoKey,
+  hex: string,
+  data: BufferSource,
+) {
   const signature = hexToUint8(hex);
   return await crypto.subtle.verify(
     { name: "HMAC" },
     key,
     signature,
-    data
+    data,
   );
 }
