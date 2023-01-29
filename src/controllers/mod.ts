@@ -8,6 +8,7 @@ import { LogController } from "./log.controller.ts";
 import { ParseController } from "./parse.controller.ts";
 import { WebhookController } from "./webhook.controller.ts";
 import { NotFoundController } from "./notfound.controller.ts";
+import { readString } from "../util/config.ts";
 
 export async function initControllers(
   app: Application<IContext>,
@@ -16,8 +17,11 @@ export async function initControllers(
 ) {
   const { env, github, analytics } = services;
   const { installations, interactions } = managers;
-  const webhookPath = env["GITHUB_WEBHOOK_PATH"];
-  const error = new ErrorController();
+  
+  // This can be any guid, it needs to be configured here as well as in the github app and in the marketplace
+  const webhookPath = readString(env, "GITHUB_WEBHOOK_PATH", "/webhook");
+
+  const error = new ErrorController(analytics);
   const health = new HealthController();
   const log = new LogController();
   const parse = new ParseController();

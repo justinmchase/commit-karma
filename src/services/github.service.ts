@@ -28,9 +28,8 @@ export class GithubService {
     // cat commit-karma.pem | base64
     const privateKey = readRequiredString(env, "GITHUB_PRIVATE_KEY");
 
-    // This can be any guid, it needs to be configured here as well as in the github app
+    // This can be any guid, it needs to be configured here as well as in the github app and in the marketplace
     const webhookSecret = readRequiredString(env, "GITHUB_WEBHOOK_SECRET");
-
     const encodedWebhookSecret = base64Encode(webhookSecret)
     const key = await hmacCreateKey(encodedWebhookSecret);
 
