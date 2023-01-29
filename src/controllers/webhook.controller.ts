@@ -24,6 +24,7 @@ import { InstallationManager, InteractionManager } from "../managers/mod.ts";
 import { GithubService } from "../services/mod.ts";
 import {
   IGithubInstallationEvent,
+  IGithubMarketplacePurchaseEvent,
   IGithubPullRequest,
 } from "../schema/github.ts";
 import { IGithubInstallationRepositoryEvent } from "../schema/github.ts";
@@ -67,6 +68,9 @@ export class WebhookController extends Controller {
     console.log(`event ${githubEvent} ${data.action}`);
 
     switch (githubEvent) {
+      case GithubEvents.MarketplacePurchase:
+        await this.handleMarketplacePurchase(data as IGithubMarketplacePurchaseEvent);
+        break;
       case GithubEvents.Installation:
         await this.handleInstallation(data as IGithubInstallationEvent);
         break;
@@ -107,6 +111,17 @@ export class WebhookController extends Controller {
     res.status = Status.OK;
     res.body = { ok: true };
     res.headers.set("Content-Type", "application/json");
+  }
+
+  private async handleMarketplacePurchase(data: IGithubMarketplacePurchaseEvent) {
+    // https://docs.github.com/en/developers/github-marketplace/using-the-github-marketplace-api-in-your-app/webhook-events-for-the-github-marketplace-api
+    const { action } = data;
+    console.log(`marketplace purchased ${data}`)
+    await this.analytics.send({
+      event: GithubEvents.MarketplacePurchase,
+      action,
+      data
+    })
   }
 
   private async handleInstallation(data: IGithubInstallationEvent) {

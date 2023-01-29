@@ -1,6 +1,7 @@
 import { ISerializable } from "../util/serializable.ts";
 
 export enum GithubEvents {
+  MarketplacePurchase = "marketplace_purchase",
   Installation = "installation",
   InstallationRepositories = "installation_repositories",
   InstallationNewPermissionsAccepted = "new_permissions_accepted",
@@ -10,6 +11,14 @@ export enum GithubEvents {
   PullRequestReview = "pull_request_review",
   PullRequestReviewComment = "pull_request_review_comment",
   IssueComment = "issue_comment",
+}
+
+export enum GithubMarketplacePurchaseActions {
+  Purchased = "purchased",
+  Cancelled = "cancelled",
+  PendingCharge = "pending_change",
+  PendingChargeCancelled = "pending_change_cancelled",
+  Changed = "changed",
 }
 
 export enum GithubInstallationActions {
@@ -119,6 +128,10 @@ export enum GithubCheckRunConclusion {
 export enum GithubPermissions {
   Read = "read",
   Write = "write",
+}
+
+export interface IGithubMarketplacePurchaseEvent extends ISerializable {
+  action: GithubMarketplacePurchaseActions;
 }
 
 export interface IGithubInstallationEvent extends ISerializable {
