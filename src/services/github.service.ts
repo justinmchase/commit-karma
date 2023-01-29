@@ -1,3 +1,4 @@
+import { base64Encode } from "../../deps/std.ts";
 import { Request, Status } from "../../deps/oak.ts";
 import { appJwt, createInstallationToken } from "../../deps/github.ts";
 import {
@@ -29,7 +30,9 @@ export class GithubService {
 
     // This can be any guid, it needs to be configured here as well as in the github app
     const webhookSecret = readRequiredString(env, "GITHUB_WEBHOOK_SECRET");
-    const key = await hmacCreateKey(webhookSecret);
+
+    const encodedWebhookSecret = base64Encode(webhookSecret)
+    const key = await hmacCreateKey(encodedWebhookSecret);
 
     if (!Deno.permissions) {
       // For some reason this was not allowed in Deno.Deploy.
