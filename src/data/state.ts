@@ -1,4 +1,4 @@
-export enum State {
+export enum ModelState {
   Active = "active",
   Deleted = "deleted",
 }

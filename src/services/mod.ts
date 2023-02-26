@@ -1,15 +1,15 @@
+import { IServices, ILoggingService, ConsoleLoggingService, AzureLoggingService, AggregateLoggingService } from "#grove/mod.ts";
 import { dotenv } from "../../deps/dotenv.ts";
-import { AnalyticsService } from "./analytics.service.ts";
 import { GithubService } from "./github.service.ts";
 import { MongoService } from "./mongo.service.ts";
 
-export { AnalyticsService, GithubService, MongoService };
+export { GithubService, MongoService };
 
-export type Services = {
+export interface Services extends IServices {
+  logging: ILoggingService;
   env: Record<string, string>;
   mongo: MongoService;
   github: GithubService;
-  analytics: AnalyticsService;
 };
 
 export async function initServices() {
@@ -17,13 +17,15 @@ export async function initServices() {
     ...await dotenv(),
     ...Deno.env.toObject(),
   };
-  const mongo = await MongoService.create(env);
+  const consoleLogging = new ConsoleLoggingService();
+  const azureLogging = await AzureLoggingService.create(env);
+  const logging = new AggregateLoggingService(consoleLogging, azureLogging);
+  const mongo = await MongoService.create(env, logging);
   const github = await GithubService.create(env);
-  const analytics = await AnalyticsService.create(env);
   return {
     env,
     mongo,
     github,
-    analytics,
+    logging,
   };
 }

@@ -1,12 +1,13 @@
 import { ObjectId } from "../../deps/mongo.ts";
 import { NotFoundError } from "../errors/mod.ts";
 import { MongoService } from "../services/mongo.service.ts";
-import { Interaction, InteractionKind, State } from "../data/mod.ts";
+import { Interaction, InteractionKind, ModelState } from "../data/mod.ts";
 
-type CreateInteractionInput = {
+export type CreateInteractionInput = {
   kind: InteractionKind;
-  state: State;
+  state: ModelState;
   repositoryId: number;
+  repositoryName: string;
   number: number;
   id: number;
   userId: number;
@@ -121,7 +122,7 @@ export class InteractionManager {
     const [karma] = await this.mongo.interactions.aggregate<Karma>([
       {
         $match: {
-          state: State.Active,
+          state: ModelState.Active,
           userId,
         },
       },

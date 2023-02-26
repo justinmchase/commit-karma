@@ -130,8 +130,15 @@ export enum GithubPermissions {
   Write = "write",
 }
 
+
+// https://docs.github.com/en/developers/github-marketplace/using-the-github-marketplace-api-in-your-app/webhook-events-for-the-github-marketplace-api
 export interface IGithubMarketplacePurchaseEvent extends ISerializable {
   action: GithubMarketplacePurchaseActions;
+  marketplace_purchase: IGithubMarketplacePurchase;
+}
+
+export interface IGithubMarketplacePurchase extends ISerializable {
+
 }
 
 export interface IGithubInstallationEvent extends ISerializable {

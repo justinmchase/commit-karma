@@ -1,46 +1,23 @@
-import { Application, Request } from "../deps/oak.ts";
-import { IContext } from "./controllers/context.ts";
+import { Context } from "./context.ts";
 import { initServices } from "./services/mod.ts";
 import { initManagers } from "./managers/mod.ts";
 import { initControllers } from "./controllers/mod.ts";
+import { Grove } from "#grove/mod.ts";
 
-export async function start() {
-  const app = new Application<IContext>();
+async function initContext(): Promise<Context> {
   const services = await initServices();
   const managers = await initManagers(services);
-  await initControllers(app, managers, services);
+  return {
+    services,
+    managers,
+  }  
+}
 
-  app.addEventListener("listen", (e) => {
-    const { analytics } = services;
-    console.log(`Listening on http://localhost:${e.port}`);
+export async function start() {
+  const grove = new Grove({
+    initContext,
+    initControllers,
+  })
 
-    analytics.send({
-      event: "listen",
-      action: "server_start",
-      data: { port: e.port },
-    });
-  });
-  app.addEventListener("error", (err) => {
-    const { error, timeStamp, message, filename, lineno, context } = err;
-    const { accepts, hasBody, headers, ips, method, url } = context?.request ||
-      {} as Request;
-    console.log(
-      `unexpected app error: `,
-      {
-        timeStamp,
-        message,
-        filename,
-        lineno,
-        accepts,
-        hasBody,
-        headers,
-        ips,
-        method,
-        url,
-        ...error,
-      },
-      error,
-    );
-  });
-  await app.listen({ port: 8000 });
+  await grove.start()
 }

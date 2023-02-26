@@ -1,4 +1,4 @@
-import { State } from "./state.ts";
+import { ModelState } from "./state.ts";
 
 export enum InteractionKind {
   PullRequest = "pull_request", // -5
@@ -19,7 +19,7 @@ export const InteractionScore = {
 export type Interaction = {
   _id: string;
   _ts: number;
-  state: State;
+  state: ModelState;
   kind: InteractionKind;
   repositoryId: number;
   id: number; // issue, pull_request, comment, etc.

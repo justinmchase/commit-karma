@@ -130,8 +130,7 @@ export class GithubService {
   public async createCheckRun(args: {
     installationId: number;
     userLogin: string;
-    repositoryName: string;
-    repositoryOwner: string;
+    repositoryName: string; // full_name, e.g. justinmchase/commit-karma
     commit: string;
     karma: Karma;
   }) {
@@ -139,7 +138,6 @@ export class GithubService {
       installationId,
       userLogin,
       repositoryName,
-      repositoryOwner,
       commit,
       karma,
     } = args;
@@ -175,7 +173,7 @@ ${entries.map(([kind, count]) => renderLine(kind, count)).join("\n")}
     const token = await this.token(installationId);
     const json = JSON.stringify(checkRun);
     const res = await fetch(
-      `https://api.github.com/repos/${repositoryOwner}/${repositoryName}/check-runs`,
+      `https://api.github.com/repos/${repositoryName}/check-runs`,
       {
         method: "POST",
         headers: new Headers({

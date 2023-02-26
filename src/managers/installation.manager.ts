@@ -1,7 +1,7 @@
 import { ObjectId } from "../../deps/mongo.ts";
 import { NotFoundError } from "../errors/mod.ts";
 import { MongoService } from "../services/mongo.service.ts";
-import { Installation, State } from "../data/mod.ts";
+import { Installation, ModelState } from "../data/mod.ts";
 import { GithubAccountType } from "../schema/github.ts";
 
 type InstallArgs = {
@@ -85,7 +85,7 @@ export class InstallationManager {
             targetType,
             repositoryId,
             repositoryName,
-            state: State.Active,
+            state: ModelState.Active,
             _ts: now.getTime(),
           },
         },
@@ -114,7 +114,7 @@ export class InstallationManager {
         upsert: true,
         update: {
           $set: {
-            state: State.Deleted,
+            state: ModelState.Deleted,
             _ts: now.getTime(),
           },
         },
@@ -131,7 +131,7 @@ export class InstallationManager {
 
   public async setState(
     installation: Installation,
-    state: State,
+    state: ModelState,
   ): Promise<Installation> {
     const { _id } = installation;
     await this.mongo.installations.updateOne(

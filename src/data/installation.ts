@@ -1,10 +1,10 @@
 import { GithubAccountType } from "../schema/github.ts";
-import { State } from "./state.ts";
+import { ModelState } from "./state.ts";
 
 export type Installation = {
   _id: string;
   _ts: number;
-  state: State;
+  state: ModelState;
   installationId: number;
   targetId: number;
   targetType: GithubAccountType;

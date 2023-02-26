@@ -1,19 +1,19 @@
+import { Controller } from "#grove/mod.ts";
 import { Application, Context, Status } from "../../deps/oak.ts";
-import { IContext } from "./context.ts";
-import { Controller } from "./controller.ts";
+import { State } from "../context.ts";
 import { AnalyticsService } from "../services/mod.ts";
 
-export class ErrorController extends Controller {
+export class ErrorController extends Controller<State> {
   constructor(private readonly analytics: AnalyticsService) {
     super();
   }
 
-  public async use(app: Application): Promise<void> {
+  public async use(app: Application<State>): Promise<void> {
     app.use(this.handler.bind(this));
     await undefined;
   }
 
-  private async handler(ctx: Context<IContext>, next: () => Promise<unknown>) {
+  private async handler(ctx: Context<State>, next: () => Promise<unknown>) {
     try {
       await next();
     } catch (err) {
