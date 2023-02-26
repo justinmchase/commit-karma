@@ -1,4 +1,4 @@
-import { IContext, IState } from "#grove/mod.ts";
+import { IContext, IState } from "../deps/grove.ts";
 import { Services } from "./services/mod.ts";
 import { Managers } from "./managers/mod.ts";
 

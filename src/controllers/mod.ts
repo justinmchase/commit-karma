@@ -2,7 +2,7 @@ import {
   HealthController,
   IsHtmlController,
   LogController,
-} from "#grove/mod.ts";
+} from "../../deps/grove.ts";
 import { Application } from "../../deps/oak.ts";
 import { Context, State } from "../context.ts";
 import { ErrorController } from "./error.controller.ts";
@@ -19,7 +19,6 @@ export async function initControllers(
     services: {
       env,
       github,
-      analytics,
       logging,
     },
     managers: {
@@ -30,8 +29,7 @@ export async function initControllers(
 
   // This can be any guid, it needs to be configured here as well as in the github app and in the marketplace
   const webhookPath = readString(env, "GITHUB_WEBHOOK_PATH", "/webhook");
-
-  const error = new ErrorController(analytics);
+  const error = new ErrorController(logging);
   const health = new HealthController();
   const log = new LogController(logging);
   const isHtml = new IsHtmlController();
@@ -40,7 +38,6 @@ export async function initControllers(
     installations,
     interactions,
     github,
-    analytics,
     webhookPath,
   );
   const notfound = new NotFoundController();

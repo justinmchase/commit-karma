@@ -1,4 +1,4 @@
-import { Controller } from "#grove/mod.ts";
+import { Controller } from "../../deps/grove.ts";
 import { Application, Context } from "../../deps/oak.ts";
 import { State } from "../context.ts";
 import { NotFoundError } from "../errors/mod.ts";

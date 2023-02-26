@@ -1,5 +1,0 @@
-{
-  "imports": {
-    "#grove/": "https://deno.land/x/grove@0.2.0/"
-  }
-}

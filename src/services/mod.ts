@@ -4,7 +4,7 @@ import {
   ConsoleLoggingService,
   ILoggingService,
   IServices,
-} from "#grove/mod.ts";
+} from "../../deps/grove.ts";
 import { dotenv } from "../../deps/dotenv.ts";
 import { GithubService } from "./github.service.ts";
 import { MongoService } from "./mongo.service.ts";

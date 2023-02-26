@@ -1,4 +1,4 @@
-import { ILoggingService } from "#grove/mod.ts";
+import { ILoggingService } from "../../deps/grove.ts";
 import {
   Collection,
   Database,

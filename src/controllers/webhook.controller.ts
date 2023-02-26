@@ -5,7 +5,7 @@ import {
   Router,
   Status,
 } from "../../deps/oak.ts";
-import { Controller, ILoggingService } from "#grove/mod.ts";
+import { Controller, ILoggingService } from "../../deps/grove.ts";
 import { State } from "../context.ts";
 import { ModelState } from "../data/state.ts";
 import { ISerializable } from "../util/serializable.ts";
@@ -317,7 +317,6 @@ export class WebhookController extends Controller<State> {
       repository: {
         id: repositoryId,
         full_name: repositoryName,
-        owner: { login: repositoryOwner },
       },
       pull_request: {
         id: pullRequestId,
@@ -347,7 +346,6 @@ export class WebhookController extends Controller<State> {
       installationId,
       userLogin,
       repositoryName,
-      repositoryOwner,
       commit,
       karma,
     });
