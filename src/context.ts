@@ -9,4 +9,3 @@ export interface Context extends IContext<Services> {
 export interface State extends IState<Services, Context> {
   dummy?: string;
 }
-

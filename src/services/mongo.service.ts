@@ -1,5 +1,4 @@
 import { ILoggingService } from "#grove/mod.ts";
-import { black, yellow } from "../../deps/std.ts";
 import {
   Collection,
   Database,
@@ -19,12 +18,15 @@ export class MongoService {
     this.interactions = db.collection("interactions");
   }
 
-  public static async create(env: Record<string, string>, logging: ILoggingService) {
+  public static async create(
+    env: Record<string, string>,
+    logging: ILoggingService,
+  ) {
     const connectionString = env["MONGO_CONNECTION_STRING"];
     if (!connectionString) {
       logging.warn(
-        'mongo',
-        'MONGO_CONNECTION_STRING not found. Please create a .env file or set up your environment correctly.'
+        "mongo",
+        "MONGO_CONNECTION_STRING not found. Please create a .env file or set up your environment correctly.",
       );
     }
 
@@ -36,7 +38,7 @@ export class MongoService {
     const db = await client.connect(options);
     logging.info(
       `mongo`,
-      "mongo connected"
+      "mongo connected",
     );
     return new MongoService(client, db);
   }

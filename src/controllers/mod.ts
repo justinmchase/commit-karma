@@ -1,4 +1,8 @@
-import { HealthController, LogController, IsHtmlController } from "#grove/mod.ts";
+import {
+  HealthController,
+  IsHtmlController,
+  LogController,
+} from "#grove/mod.ts";
 import { Application } from "../../deps/oak.ts";
 import { Context, State } from "../context.ts";
 import { ErrorController } from "./error.controller.ts";
@@ -16,12 +20,12 @@ export async function initControllers(
       env,
       github,
       analytics,
-      logging
+      logging,
     },
     managers: {
       installations,
-      interactions
-    }
+      interactions,
+    },
   } = context;
 
   // This can be any guid, it needs to be configured here as well as in the github app and in the marketplace

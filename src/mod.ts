@@ -10,14 +10,14 @@ async function initContext(): Promise<Context> {
   return {
     services,
     managers,
-  }  
+  };
 }
 
 export async function start() {
   const grove = new Grove({
     initContext,
     initControllers,
-  })
+  });
 
-  await grove.start()
+  await grove.start();
 }

@@ -130,7 +130,6 @@ export enum GithubPermissions {
   Write = "write",
 }
 
-
 // https://docs.github.com/en/developers/github-marketplace/using-the-github-marketplace-api-in-your-app/webhook-events-for-the-github-marketplace-api
 export interface IGithubMarketplacePurchaseEvent extends ISerializable {
   action: GithubMarketplacePurchaseActions;
@@ -138,7 +137,15 @@ export interface IGithubMarketplacePurchaseEvent extends ISerializable {
 }
 
 export interface IGithubMarketplacePurchase extends ISerializable {
+  account: IGithubAccount;
+  billing_cycle: "yearly" | "monthly";
+  plan: IGithubMarketplacePlan;
+  unit_count: number;
+}
 
+export interface IGithubMarketplacePlan extends ISerializable {
+  id: number;
+  name: string;
 }
 
 export interface IGithubInstallationEvent extends ISerializable {
@@ -253,6 +260,7 @@ export interface IGithubReview extends ISerializable {
   };
 }
 
+// Can be an organization or a user
 export interface IGithubAccount extends ISerializable {
   id: number; // 10974
   login: string; // "justinmchase",

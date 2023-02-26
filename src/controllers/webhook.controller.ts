@@ -51,9 +51,9 @@ export class WebhookController extends Controller<State> {
     const router = new Router();
     const webhookPath = this.webhookPath;
     this.logging.info(
-      'webhook',
+      "webhook",
       `webhook listening at path ${webhookPath}`,
-      { webhookPath }
+      { webhookPath },
     );
     router.post(
       webhookPath,
@@ -75,7 +75,7 @@ export class WebhookController extends Controller<State> {
     this.logging.info(
       `github_event`,
       `event ${githubEvent} ${data.action}`,
-      { githubEvent, action: data.action }
+      { githubEvent, action: data.action },
     );
 
     switch (githubEvent) {
@@ -127,11 +127,29 @@ export class WebhookController extends Controller<State> {
   private async handleMarketplacePurchase(
     data: IGithubMarketplacePurchaseEvent,
   ) {
-    const { action } = data;
-    this.logging.info(
+    const {
+      action,
+      marketplace_purchase: {
+        account: {
+          id: accountId,
+          login: accountLogin,
+        },
+        plan: {
+          id: planId,
+          name: planName,
+        },
+      },
+    } = data;
+    await this.logging.info(
       `github_marketplace_purchase`,
       `marketplace purchased ${data}`,
-      { }
+      {
+        action,
+        accountId,
+        accountLogin,
+        planId,
+        planName,
+      },
     );
   }
 
@@ -157,16 +175,16 @@ export class WebhookController extends Controller<State> {
       };
       await this.installations.install(installation);
       await this.logging.info(
-        'github_installation',
+        "github_installation",
         `installation ${action} ${repositoryName}`,
         {
           installationId,
           targetId,
           targetType,
           repositoryId,
-          repositoryName
-        }
-      )
+          repositoryName,
+        },
+      );
     }
   }
 
@@ -192,18 +210,18 @@ export class WebhookController extends Controller<State> {
         repositoryId,
         repositoryName,
       };
-      await this.installations.install(installation);      
+      await this.installations.install(installation);
       await this.logging.info(
-        'github_installation_repository',
+        "github_installation_repository",
         `installation repository ${action} ${repositoryName}`,
         {
           installationId,
           targetId,
           targetType,
           repositoryId,
-          repositoryName
-        }
-      )
+          repositoryName,
+        },
+      );
     }
 
     for (
@@ -217,16 +235,16 @@ export class WebhookController extends Controller<State> {
       };
       await this.installations.uninstall(installation);
       await this.logging.info(
-        'github_installation',
+        "github_installation",
         `installation ${action} ${repositoryName}`,
         {
           installationId,
           targetId,
           targetType,
           repositoryId,
-          repositoryName
-        }
-      )
+          repositoryName,
+        },
+      );
     }
   }
 
@@ -244,7 +262,7 @@ export class WebhookController extends Controller<State> {
     if (issueUserId === commentUserId) {
       // A user doesn't get karma points for commenting on their own issues.
       await this.logging.debug(
-        'github_issue_comment_same_user',
+        "github_issue_comment_same_user",
         `issue_comment same_user ${action} ${number} ${repositoryName}`,
         {
           action,
@@ -252,9 +270,9 @@ export class WebhookController extends Controller<State> {
           commentId,
           commentUserId,
           repositoryId,
-          repositoryName
-        }
-      )
+          repositoryName,
+        },
+      );
       return;
     }
 
@@ -276,7 +294,7 @@ export class WebhookController extends Controller<State> {
     };
     await this.interactions.upsert(interaction);
     await this.logging.info(
-      'github_issue_comment',
+      "github_issue_comment",
       `issue_comment ${action} ${number} ${commentUserLogin} ${score} ${repositoryName}`,
       {
         action,
@@ -287,8 +305,8 @@ export class WebhookController extends Controller<State> {
         repositoryId,
         repositoryName,
         score,
-      }
-    )
+      },
+    );
   }
 
   private async handlePullRequest(data: IGithubPullRequestEvent) {
@@ -334,7 +352,7 @@ export class WebhookController extends Controller<State> {
       karma,
     });
     await this.logging.info(
-      'github_pull_request',
+      "github_pull_request",
       `pull_request ${action} ${number} ${userLogin} ${score}/${karma} ${repositoryName}`,
       {
         action,
@@ -344,9 +362,9 @@ export class WebhookController extends Controller<State> {
         repositoryId,
         repositoryName,
         score,
-        karma
-      }
-    )
+        karma,
+      },
+    );
   }
 
   private async handlePullRequestReview(data: IGithubPullRequestReviewEvent) {
@@ -372,7 +390,7 @@ export class WebhookController extends Controller<State> {
     if (pullRequestUserId === reviewUserId) {
       // A user doesn't get karma points for reviewing their own PRs (should never happen, github prevents it).
       await this.logging.debug(
-        'github_pull_request_review_same_user',
+        "github_pull_request_review_same_user",
         `pull_request_review same_user ${action} ${number} ${reviewUserLogin} ${repositoryName}`,
         {
           action,
@@ -382,8 +400,8 @@ export class WebhookController extends Controller<State> {
           reviewUserLogin,
           repositoryId,
           repositoryName,
-        }
-      )
+        },
+      );
       return;
     }
 
@@ -402,7 +420,7 @@ export class WebhookController extends Controller<State> {
     };
     await this.interactions.upsert(interaction);
     await this.logging.info(
-      'github_pull_request_review',
+      "github_pull_request_review",
       `pull_request_review ${action} ${number} ${reviewUserLogin} ${score} ${repositoryName}`,
       {
         action,
@@ -413,8 +431,8 @@ export class WebhookController extends Controller<State> {
         repositoryId,
         repositoryName,
         score,
-      }
-    )
+      },
+    );
   }
 
   private async handlePullRequestReviewComment(
@@ -434,7 +452,7 @@ export class WebhookController extends Controller<State> {
     if (pullRequestUserId === commentUserId) {
       // A user doesn't get karma points for reviewing their own PRs (should never happen, github prevents it).
       await this.logging.debug(
-        'github_pull_request_review_comment_same_user',
+        "github_pull_request_review_comment_same_user",
         `pull_request_review_comment same_user ${action} ${number} ${commentUserLogin} ${repositoryName}`,
         {
           action,
@@ -444,8 +462,8 @@ export class WebhookController extends Controller<State> {
           commentUserLogin,
           repositoryId,
           repositoryName,
-        }
-      )
+        },
+      );
       return;
     }
 
@@ -467,7 +485,7 @@ export class WebhookController extends Controller<State> {
     };
     await this.interactions.upsert(interaction);
     await this.logging.info(
-      'github_pull_request_review_comment',
+      "github_pull_request_review_comment",
       `pull_request_review_comment ${action} ${number} ${commentUserLogin} ${score} ${repositoryName}`,
       {
         action,
@@ -478,8 +496,8 @@ export class WebhookController extends Controller<State> {
         repositoryId,
         repositoryName,
         score,
-      }
-    )
+      },
+    );
   }
 
   private async handleCheckSuite(data: IGithubCheckSuiteEvent) {
@@ -514,7 +532,7 @@ export class WebhookController extends Controller<State> {
       user: {
         id: userId,
         login: userLogin,
-      }
+      },
     } = pr;
     const {
       action,
@@ -534,7 +552,7 @@ export class WebhookController extends Controller<State> {
     };
     await this.github.createCheckRun(checkRun);
     await this.logging.info(
-      'github_check_suite',
+      "github_check_suite",
       `check_suite ${action} ${number} ${commit} ${userLogin} ${repositoryName}`,
       {
         action,
@@ -544,8 +562,8 @@ export class WebhookController extends Controller<State> {
         userLogin,
         repositoryId,
         repositoryName,
-        karma
-      }
-    )
+        karma,
+      },
+    );
   }
 }
